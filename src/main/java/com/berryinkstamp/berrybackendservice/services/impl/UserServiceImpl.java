@@ -1,12 +1,17 @@
 package com.berryinkstamp.berrybackendservice.services.impl;
 
+import com.berryinkstamp.berrybackendservice.cache.CountryCache;
 import com.berryinkstamp.berrybackendservice.configs.security.CustomAuthenticationToken;
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
+import com.berryinkstamp.berrybackendservice.dtos.request.AddProfileRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.BaseRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.LoginRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.RegistrationRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.ResetPasswordRequest;
+import com.berryinkstamp.berrybackendservice.dtos.request.UpdateMailSettingRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.UpdatePasswordRequest;
+import com.berryinkstamp.berrybackendservice.dtos.request.UpdateUserRequest;
+import com.berryinkstamp.berrybackendservice.dtos.request.UpdateUsernameRequest;
 import com.berryinkstamp.berrybackendservice.dtos.response.LoginResponse;
 import com.berryinkstamp.berrybackendservice.dtos.response.RegistrationResponse;
 import com.berryinkstamp.berrybackendservice.enums.AuthProvider;
@@ -16,10 +21,12 @@ import com.berryinkstamp.berrybackendservice.exceptions.BadRequestException;
 import com.berryinkstamp.berrybackendservice.exceptions.ForbiddenException;
 import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
 import com.berryinkstamp.berrybackendservice.exceptions.UnathorizedException;
+import com.berryinkstamp.berrybackendservice.models.Address;
 import com.berryinkstamp.berrybackendservice.models.MailSetting;
 import com.berryinkstamp.berrybackendservice.models.Profile;
 import com.berryinkstamp.berrybackendservice.models.Role;
 import com.berryinkstamp.berrybackendservice.models.User;
+import com.berryinkstamp.berrybackendservice.repositories.AddressRepository;
 import com.berryinkstamp.berrybackendservice.repositories.MailSettingRepository;
 import com.berryinkstamp.berrybackendservice.repositories.ProfileRepository;
 import com.berryinkstamp.berrybackendservice.repositories.RoleRepository;
@@ -52,6 +59,7 @@ public class UserServiceImpl implements UserService {
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AddressRepository addressRepository;
     private final MailSettingRepository mailSettingRepository;
     private final ProfileRepository profileRepository;
     private final RoleRepository authorityRepository;
@@ -163,6 +171,84 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
 
         //todo push to audit
+
+        return user;
+    }
+
+    @Override
+    public User updateUsername(UpdateUsernameRequest request) {
+        User user = getCurrentUser();
+
+        if (userRepository.existsByUsernameAllIgnoreCase(request.getName())) {
+            throw new BadRequestException("Username already exists");
+        }
+
+        user.setUsername(request.getName());
+
+        user = userRepository.save(user);
+
+        //todo push to audit
+
+        return user;
+    }
+
+    @Override
+    public User updateUser(UpdateUserRequest request) {
+
+        String country = getCountry(request.getCountry());
+        User user = getCurrentUser();
+        user.setGender(request.getGender());
+        user.setName(request.getName());
+        user.setProfilePicture(request.getProfilePicture());
+        user = userRepository.save(user);
+        user.setAddress(updateAddress(request, user, country));
+        return user;
+    }
+
+    private String getCountry(String countryName) {
+        if (countryName == null) {
+            return null;
+        }
+        String country = CountryCache.getInstance().get(countryName.toUpperCase().trim());
+        if (country == null) {
+            throw new BadRequestException("invalid country");
+        }
+
+        return country;
+
+    }
+
+    @Override
+    public User updateMailSetting(UpdateMailSettingRequest request) {
+        User user = getCurrentUser();
+        MailSetting mailSetting = user.getMailSetting();
+        mailSetting.setPromotionEmail(request.isPromotionEmail());
+        mailSetting.setSupportEmail(request.isSupportEmail());
+        mailSetting.setOrderEmail(request.isOrderEmail());
+        mailSetting.setOtherEmail(request.isOtherEmail());
+        mailSetting.setNewsEmail(request.isNewsEmail());
+        mailSetting = mailSettingRepository.save(mailSetting);
+        user.setMailSetting(mailSetting);
+        return user;
+    }
+
+    @Override
+    public User addProfile(AddProfileRequest request) {
+        User user = getCurrentUser();
+
+        if (request.getProfile() == ProfileType.PRINTER && user.getPrinterProfile() != null) {
+            throw new BadRequestException("printer profile already exists");
+        }
+
+        if (request.getProfile() == ProfileType.DESIGNER && user.getDesignerProfile() != null) {
+            throw new BadRequestException("designer profile already exists");
+        }
+
+        if (request.getProfile() == ProfileType.CUSTOMER ) {
+            return user;
+        }
+
+        createProfile(request.getName(), request.getProfile(), user);
 
         return user;
     }
@@ -282,7 +368,7 @@ public class UserServiceImpl implements UserService {
 
         user =  userRepository.save(user);
         createMailSetting(user, dto);
-        createProfile(dto, user);
+        createProfile(dto.getBusinessName(), dto.getProfile(), user);
         return user;
     }
 
@@ -303,17 +389,17 @@ public class UserServiceImpl implements UserService {
         return name;
     }
 
-    private void createProfile(RegistrationRequest dto, User user) {
-        if (dto.getProfile() == ProfileType.CUSTOMER) {
+    private void createProfile(String name, ProfileType profileType, User user) {
+        if (profileType == ProfileType.CUSTOMER) {
             return;
         }
 
         Profile profile = new Profile();
-        profile.setBusinessName(dto.getBusinessName());
+        profile.setBusinessName(name);
         profile.setUser(user);
         profile = profileRepository.save(profile);
 
-        if (dto.getProfile() == ProfileType.DESIGNER) {
+        if (profileType == ProfileType.DESIGNER) {
             user.setDesignerProfile(profile);
             return;
         }
@@ -333,7 +419,20 @@ public class UserServiceImpl implements UserService {
         user.setMailSetting(mailSetting);
     }
 
+    private Address updateAddress(UpdateUserRequest request, User user, String country) {
+        Address address = user.getAddress();
+        if (address == null) {
+            address = new Address();
+        }
 
+        address.setAddress(request.getAddress());
+        address.setCity(request.getCity());
+        address.setCountry(country);
+        address.setPostalCode(request.getPostalCode());
+        address.setState(request.getState());
+        address.setUser(user);
+        return addressRepository.save(address);
+    }
     private User getCurrentUser() {
         return userRepository.findFirstByEmail(tokenProvider.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
     }

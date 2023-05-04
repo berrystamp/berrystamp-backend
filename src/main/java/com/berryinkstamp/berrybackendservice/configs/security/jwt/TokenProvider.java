@@ -1,5 +1,8 @@
 package com.berryinkstamp.berrybackendservice.configs.security.jwt;
 
+import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
+import com.berryinkstamp.berrybackendservice.models.User;
+import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -16,7 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -35,6 +37,7 @@ public class TokenProvider implements InitializingBean {
    private final String base64Secret;
    private final long tokenValidityInMilliseconds;
    private final long tokenValidityInMillisecondsForRememberMe;
+   private final UserRepository userRepository;
 
    private String email;
 
@@ -49,13 +52,20 @@ public class TokenProvider implements InitializingBean {
       this.email = claims.getSubject();
    }
 
+   public User getCurrentUser() {
+      return userRepository.findFirstByEmail(this.email).orElseThrow(() -> new NotFoundException("User not found"));
+   }
+
    public TokenProvider(
            @Value("${jwt.base64-secret}") String base64Secret,
            @Value("${jwt.token-validity-in-seconds}") long tokenValidityInSeconds,
-           @Value("${jwt.token-validity-in-seconds-for-remember-me}") long tokenValidityInSecondsForRememberMe) {
+           @Value("${jwt.token-validity-in-seconds-for-remember-me}") long tokenValidityInSecondsForRememberMe,
+           UserRepository userRepository
+   ) {
       this.base64Secret = base64Secret;
       this.tokenValidityInMilliseconds = tokenValidityInSeconds * 1000;
       this.tokenValidityInMillisecondsForRememberMe = tokenValidityInSecondsForRememberMe * 1000;
+      this.userRepository = userRepository;
    }
 
    @Override
@@ -98,7 +108,7 @@ public class TokenProvider implements InitializingBean {
 
       log.info("user role : " + authorities);
 
-      User principal = new User(claims.getSubject(), "", authorities);
+      org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities);
 
       return new UsernamePasswordAuthenticationToken(principal, token, authorities);
    }

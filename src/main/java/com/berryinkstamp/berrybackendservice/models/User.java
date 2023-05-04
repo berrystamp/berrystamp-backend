@@ -47,6 +47,8 @@ public class User extends AbstractAuditingEntity<User> implements Serializable {
 
    private String phoneNumber;
 
+   private String profilePicture;
+
    @Enumerated(EnumType.STRING)
    private Gender gender;
 
