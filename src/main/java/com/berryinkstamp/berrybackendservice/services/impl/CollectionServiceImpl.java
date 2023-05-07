@@ -27,15 +27,12 @@ import java.util.Optional;
 @Slf4j
 public class CollectionServiceImpl implements CollectionService {
     private final CollectionRepository collectionRepository;
-    private final UserService userService;
     private final DesignRepository designRepository;
     private final TokenProvider tokenProvider;
 
     public CollectionServiceImpl(CollectionRepository collectionRepository,
-                                 UserService userService,
                                  DesignRepository designRepository, TokenProvider tokenProvider) {
         this.collectionRepository = collectionRepository;
-        this.userService = userService;
         this.designRepository = designRepository;
         this.tokenProvider = tokenProvider;
     }
@@ -105,7 +102,7 @@ public class CollectionServiceImpl implements CollectionService {
 
     @Override
     public Page<Collection> fetchAllDesignerCollections(Pageable pageable) {
-      Long designerId = userService.getUser().getDesignerProfile().getId();
+      Long designerId = tokenProvider.getCurrentUser().getDesignerProfile().getId();
       return collectionRepository.findCollectionsByDesignerProfileId(designerId,pageable);
     }
 
@@ -137,10 +134,4 @@ public class CollectionServiceImpl implements CollectionService {
         return collection.isEmpty();
     }
 
-    private Boolean checkIfUserProfileIsDesigner() {
-        return Optional.ofNullable(userService.getUser().getDesignerProfile())
-                .map(Profile::getProfileType)
-                .map(ProfileType.DESIGNER::equals)
-                .orElse(false);
-    }
 }

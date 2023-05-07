@@ -2,18 +2,13 @@ package com.berryinkstamp.berrybackendservice.services.impl;
 
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
 import com.berryinkstamp.berrybackendservice.dtos.request.NewDesignRequest;
-import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.exceptions.BadRequestException;
-import com.berryinkstamp.berrybackendservice.exceptions.ForbiddenException;
 import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
 import com.berryinkstamp.berrybackendservice.models.Design;
-import com.berryinkstamp.berrybackendservice.models.Profile;
 import com.berryinkstamp.berrybackendservice.models.User;
-import com.berryinkstamp.berrybackendservice.repositories.CollectionRepository;
 import com.berryinkstamp.berrybackendservice.repositories.DesignRepository;
 import com.berryinkstamp.berrybackendservice.repositories.MockImageRepository;
 import com.berryinkstamp.berrybackendservice.services.DesignService;
-import com.berryinkstamp.berrybackendservice.services.UserService;
 import com.berryinkstamp.berrybackendservice.utils.Utils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,15 +22,14 @@ import java.util.Optional;
 @Service
 public class DesignServiceImpl implements DesignService {
     private final DesignRepository designRepository;
-    private final CollectionRepository collectionRepository;
-    private final UserService userService;
+
     private final MockImageRepository mockImageRepository;
     private final TokenProvider tokenProvider;
 
-    public DesignServiceImpl(DesignRepository designRepository, CollectionRepository collectionRepository, UserService userService, MockImageRepository mockImageRepository, TokenProvider tokenProvider) {
+    public DesignServiceImpl(DesignRepository designRepository,
+                             MockImageRepository mockImageRepository,
+                             TokenProvider tokenProvider) {
         this.designRepository = designRepository;
-        this.collectionRepository = collectionRepository;
-        this.userService = userService;
         this.mockImageRepository = mockImageRepository;
         this.tokenProvider = tokenProvider;
     }
