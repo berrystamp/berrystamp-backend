@@ -1,5 +1,6 @@
 package com.berryinkstamp.berrybackendservice.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,4 +24,8 @@ public class MockImages extends AbstractAuditingEntity<MockImages>implements Ser
     private String imageUrl;
     @Column(name = "available_qty")
     private Long availableQty;
+
+    @JsonIgnore
+    @ManyToOne
+    private Design design;
 }

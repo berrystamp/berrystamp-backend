@@ -10,7 +10,7 @@ public interface ProfileService {
 
     Page<Profile> getAllProfiles(ProfileType profileType, Pageable pageable);
 
-    Profile getUserProfile(Long userId, ProfileType profile);
+    Profile getUserProfile(Long userId);
 
-    Profile updateProfile(UpdateProfileRequest request);
+    Profile updateProfile(UpdateProfileRequest request, Long profileId);
 }

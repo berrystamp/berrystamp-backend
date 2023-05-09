@@ -7,6 +7,7 @@ import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
 import com.berryinkstamp.berrybackendservice.models.Profile;
 import com.berryinkstamp.berrybackendservice.models.User;
 import com.berryinkstamp.berrybackendservice.repositories.ProfileRepository;
+import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
 import com.berryinkstamp.berrybackendservice.services.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileRepository profileRepository;
     private final TokenProvider tokenProvider;
+    private final UserRepository userRepository;
 
 
 
@@ -32,8 +34,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public Profile getUserProfile(Long userId, ProfileType profileType) {
-        Optional<Profile> profile = profileRepository.findByProfileTypeAndUser(profileType, tokenProvider.getCurrentUser());
+    public Profile getUserProfile(Long profileId) {
+        Optional<Profile> profile = profileRepository.findById(profileId);
         if (profile.isEmpty()) {
             throw new NotFoundException("user profile not found");
         }
@@ -41,9 +43,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public Profile updateProfile(UpdateProfileRequest request) {
-        User user = tokenProvider.getCurrentUser();
-        Optional<Profile> optionalProfile = profileRepository.findByProfileTypeAndUser(request.getProfile(), user);
+    public Profile updateProfile(UpdateProfileRequest request, Long profileId) {
+        Optional<Profile> optionalProfile = profileRepository.findById(profileId);
         if (optionalProfile.isEmpty()) {
             throw new NotFoundException("user profile not found");
         }

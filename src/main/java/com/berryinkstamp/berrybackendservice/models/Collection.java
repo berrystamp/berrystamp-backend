@@ -26,8 +26,10 @@ public class Collection extends AbstractAuditingEntity<Collection> implements Se
     private String picture;
     private String slug;
     private String description;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "collection")
+
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "collection")
     private Set<Design> designs = new HashSet<>();
+
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false)
     @JsonIgnore

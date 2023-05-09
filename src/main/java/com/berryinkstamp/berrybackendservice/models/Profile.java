@@ -61,7 +61,7 @@ public class Profile extends AbstractAuditingEntity<Profile> implements Serializ
     @OneToMany(fetch = FetchType.LAZY)
     private List<Review> reviews;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(nullable = false)
     private User user;

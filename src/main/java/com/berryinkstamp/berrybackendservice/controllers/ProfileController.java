@@ -12,6 +12,8 @@ import com.berryinkstamp.berrybackendservice.models.Profile;
 import com.berryinkstamp.berrybackendservice.models.User;
 import com.berryinkstamp.berrybackendservice.services.ProfileService;
 import com.berryinkstamp.berrybackendservice.services.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/api/v1/profile")
 @RestController
 @RequiredArgsConstructor
@@ -34,14 +37,16 @@ public class ProfileController {
 
     private final ProfileService profileService;
 
+    @Operation(summary = "Add a profile", description = "Add a profile")
     @PostMapping
     public User addProfile(@RequestBody @Valid AddProfileRequest request) {
         return userService.addProfile(request);
     }
 
-    @PutMapping
-    public Profile updateProfile(@RequestBody @Valid UpdateProfileRequest request) {
-        return profileService.updateProfile(request);
+    @Operation(summary = "Update a profile", description = "Update a profile")
+    @PutMapping("/{profileId}")
+    public Profile updateProfile(@RequestBody @Valid UpdateProfileRequest request, Long profileId) {
+        return profileService.updateProfile(request, profileId);
     }
 
 }

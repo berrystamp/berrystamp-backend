@@ -7,7 +7,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -17,11 +20,9 @@ public class NewDesignRequest {
     private String frontImageUrl;
     private String backImageUrl;
     private String description;
-    @NotNull
-    private Long designerId;
     private Long printerId;
     private BigDecimal amount;
-    private List<MockImages> mocks;
-    private String category;
-    private String tags;
+    private List<MockImagesDto> mocks;
+    private Set<String> category = new HashSet<>();
+    private Set<String> tags = new HashSet<>();
 }

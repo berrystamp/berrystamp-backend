@@ -15,8 +15,9 @@ import java.util.Optional;
 
 @Repository
 public interface CollectionRepository extends JpaRepository<Collection, Long> {
-    Optional<Collection> findCollectionByDesignerProfileIdAndNameOrSlug(@Param("designerId") Long designerId, @Param("name") String name, @Param("slug") String slug);
+    Optional<Collection> findCollectionByDesignerProfileIdAndName(@Param("designerId") Long designerId, @Param("name") String name);
     Page<Collection> findCollectionsByDesignerProfileId(Long designerId, Pageable pageable);
-
+    Optional<Collection> findByIdAndDesignerProfile(Long id, Profile designerProfile);
+    boolean existsByNameAndDesignerProfileAndIdNot(String name, Profile designerProfile, Long id);
 
 }

@@ -50,9 +50,10 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
         return handleExceptionInternal(ex, new ApiResponse(false,  ex.getMessage()), new HttpHeaders(), HttpStatus.FORBIDDEN, request);
     }
 
-    @ExceptionHandler(value = { JsonProcessingException.class, IllegalStateException.class})
-    protected ResponseEntity<Object> handleCircleException(RuntimeException ex, WebRequest request) {
-        return handleExceptionInternal(ex , new ApiResponse(false,  ex.getMessage()), new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, request);
+
+    @ExceptionHandler(value = { PreConditionFailedException.class})
+    protected ResponseEntity<Object> handlePreConditionFailedException(RuntimeException ex, WebRequest request) {
+        return handleExceptionInternal(ex , new ApiResponse(false,  ex.getMessage()), new HttpHeaders(), HttpStatus.PRECONDITION_FAILED, request);
     }
 
     @Override

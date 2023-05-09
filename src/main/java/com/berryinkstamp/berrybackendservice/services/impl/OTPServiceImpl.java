@@ -32,7 +32,11 @@ public class OTPServiceImpl implements OTPService {
     public void sendRegistrationOTP(User user) {
         String otp = RandomStringUtils.randomNumeric(6);
         log.info("registration otp {} for user {}", otp, user.getEmail());
-        emailService.sendRegistrationOTP(otp, user);
+        try {
+            emailService.sendRegistrationOTP(otp, user);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         saveOTP(user, otp);
     }
 
@@ -40,7 +44,11 @@ public class OTPServiceImpl implements OTPService {
     public void sendForgetPasswordOTP(User user) {
         String otp = RandomStringUtils.randomNumeric(6);
         log.info("forget password otp {} for user {}", otp, user.getEmail());
-        emailService.sendForgetPasswordOTP(otp, user);
+        try {
+            emailService.sendForgetPasswordOTP(otp, user);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         saveOTP(user, otp);
     }
 

@@ -1,6 +1,7 @@
 package com.berryinkstamp.berrybackendservice.services;
 
 import com.berryinkstamp.berrybackendservice.dtos.request.CollectionAdditionRequest;
+import com.berryinkstamp.berrybackendservice.dtos.request.CollectionMoveRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.NewCollectionRequest;
 import com.berryinkstamp.berrybackendservice.models.Collection;
 import org.springframework.data.domain.Page;
@@ -14,4 +15,5 @@ public interface CollectionService {
     Collection addDesignsToCollection(Long id, CollectionAdditionRequest collectionRequest);
     Page<Collection> fetchAllCollection(Long designerId, Pageable pageable);
     Page<Collection> fetchAllDesignerCollections(Pageable pageable);
+    Collection moveDesignToCollection(Long collectionId, CollectionMoveRequest collectionMoveRequest);
 }

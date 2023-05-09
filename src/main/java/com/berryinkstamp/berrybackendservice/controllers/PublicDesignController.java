@@ -3,6 +3,7 @@ package com.berryinkstamp.berrybackendservice.controllers;
 import com.berryinkstamp.berrybackendservice.models.Design;
 import com.berryinkstamp.berrybackendservice.services.CollectionService;
 import com.berryinkstamp.berrybackendservice.services.DesignService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
@@ -18,17 +19,19 @@ public class PublicDesignController {
         this.collectionService = collectionService;
     }
 
+    @Operation(summary = "Fetch design by Id", description = "Fetch design by Id")
     @GetMapping("/{designId}")
     private Design fetchDesignById(@PathVariable Long designId){
         return designService.fetchDesignById(designId);
     }
 
+    @Operation(summary = "Fetch design by slug", description = "Fetch design by slug")
     @GetMapping("/slug/{slug}")
     private Design getDesignBySlug(@PathVariable String slug){
-        var design = designService.fetchDesignBySlug(slug);
-        return design;
+        return designService.fetchDesignBySlug(slug);
     }
 
+    @Operation(summary = "Fetch all designs", description = "Fetch all designs")
     @GetMapping()
     private Page<Design> fetchAllDesigns(@RequestParam(value = "collection", required = false) Long collectionId,
                                          @RequestParam(value = "designer", required = false) Long designerId,

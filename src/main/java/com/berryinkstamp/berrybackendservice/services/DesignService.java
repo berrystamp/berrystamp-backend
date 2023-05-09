@@ -12,7 +12,7 @@ public interface DesignService {
     Design createDesign(NewDesignRequest designRequest);
     Map<Object,Object> deleteDesign(Long designId);
     Design fetchDesignById(Long designId);
-    List<Design>fetchAllDesignsForDesigner(Pageable pageable);
+    Page<Design> fetchAllDesignsForDesigner(Pageable pageable);
     Design fetchDesignBySlug(String slug);
     Page<Design> fetchAllDesign(Long collectionId, Long designerId, String tag, String category, Pageable pageable);
 }
