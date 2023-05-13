@@ -37,9 +37,5 @@ public class RegistrationRequest implements Serializable {
 
     private boolean sendPromotionEmail;
 
-    @NotNull(message = "profile is required")
-    private ProfileType profile;
-
-
 
 }

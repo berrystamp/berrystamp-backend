@@ -6,7 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,23 +16,16 @@ import java.io.Serializable;
 @Setter
 @Getter
 @Entity
-@Table(name = "reviews")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Review extends AbstractAuditingEntity<Review> implements Serializable {
-
+public class Follow extends AbstractAuditingEntity<Follow> implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String comment;
-
-    private int stars;
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Profile follower;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    private Profile ratedUser;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    private Profile ratingUser;
-
+    private Profile following;
 }

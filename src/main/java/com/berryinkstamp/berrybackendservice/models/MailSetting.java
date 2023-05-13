@@ -32,7 +32,7 @@ public class MailSetting extends AbstractAuditingEntity<MailSetting> implements 
     private boolean newsEmail;
     private boolean otherEmail;
     private boolean promotionEmail;
-
+    //todo : crud payment details in profile
     @JsonIgnore
     @OneToOne
     @JoinColumn(nullable = false)

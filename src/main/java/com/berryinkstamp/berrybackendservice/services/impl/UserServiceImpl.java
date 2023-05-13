@@ -6,6 +6,7 @@ import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
 import com.berryinkstamp.berrybackendservice.dtos.request.AddProfileRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.BaseRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.LoginRequest;
+import com.berryinkstamp.berrybackendservice.dtos.request.PaymentDetailDto;
 import com.berryinkstamp.berrybackendservice.dtos.request.RegistrationRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.ResetPasswordRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.UpdateMailSettingRequest;
@@ -23,12 +24,16 @@ import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
 import com.berryinkstamp.berrybackendservice.exceptions.UnathorizedException;
 import com.berryinkstamp.berrybackendservice.models.Address;
 import com.berryinkstamp.berrybackendservice.models.MailSetting;
+import com.berryinkstamp.berrybackendservice.models.PaymentDetail;
 import com.berryinkstamp.berrybackendservice.models.Profile;
+import com.berryinkstamp.berrybackendservice.models.Rating;
 import com.berryinkstamp.berrybackendservice.models.Role;
 import com.berryinkstamp.berrybackendservice.models.User;
 import com.berryinkstamp.berrybackendservice.repositories.AddressRepository;
 import com.berryinkstamp.berrybackendservice.repositories.MailSettingRepository;
+import com.berryinkstamp.berrybackendservice.repositories.PaymentDetailRepository;
 import com.berryinkstamp.berrybackendservice.repositories.ProfileRepository;
+import com.berryinkstamp.berrybackendservice.repositories.RatingRepository;
 import com.berryinkstamp.berrybackendservice.repositories.RoleRepository;
 import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
 import com.berryinkstamp.berrybackendservice.services.EmailService;
@@ -58,34 +63,36 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final TokenProvider tokenProvider;
     private final UserRepository userRepository;
+    private final RatingRepository ratingRepository;
     private final PasswordEncoder passwordEncoder;
     private final AddressRepository addressRepository;
     private final MailSettingRepository mailSettingRepository;
     private final ProfileRepository profileRepository;
     private final RoleRepository authorityRepository;
+    private final PaymentDetailRepository paymentDetailRepository;
     private final AuthenticationManager authenticationManager;
 
 
     @Override
-    public RegistrationResponse registerUser(RegistrationRequest dto) {
+    public RegistrationResponse registerUser(RegistrationRequest dto, ProfileType profileType) {
         Optional<User> optionalUser = userRepository.findFirstByEmail(dto.getEmail());
         if (optionalUser.isPresent()) {
             throw new BadRequestException("Email already exists");
         }
 
-        if (dto.getProfile() == ProfileType.CUSTOMER) {
+        if (profileType == ProfileType.CUSTOMER) {
             validateCustomerRegistration(dto);
         }
 
-        if (dto.getProfile() == ProfileType.PRINTER) {
+        if (profileType == ProfileType.PRINTER) {
             validatePrinterRegistration(dto);
         }
 
-        if (dto.getProfile() == ProfileType.DESIGNER) {
+        if (profileType == ProfileType.DESIGNER) {
             validateDesignerRegistration(dto);
         }
 
-        User user = createUser(dto);
+        User user = createUser(dto, profileType);
         otpService.sendRegistrationOTP(user);
         //todo push to audit
         return new RegistrationResponse(false);
@@ -126,8 +133,6 @@ public class UserServiceImpl implements UserService {
         otpService.sendForgetPasswordOTP(user);
         return null;
     }
-
-
 
     @Override
     public Object completeResetPassword(ResetPasswordRequest request) {
@@ -178,14 +183,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUsername(UpdateUsernameRequest request) {
         User user = getCurrentUser();
+        Profile customerProfile = getCurrentUser().getCustomerProfile();
 
-        if (userRepository.existsByUsernameAllIgnoreCase(request.getName())) {
+        if (profileRepository.existsByProfileTypeAndNameAllIgnoreCase(ProfileType.CUSTOMER, request.getName())) {
             throw new BadRequestException("Username already exists");
         }
 
-        user.setUsername(request.getName());
+        customerProfile.setName(request.getName());
 
-        user = userRepository.save(user);
+        customerProfile = profileRepository.save(customerProfile);
+
+        user.setCustomerProfile(customerProfile);
 
         //todo push to audit
 
@@ -199,9 +207,14 @@ public class UserServiceImpl implements UserService {
         User user = getCurrentUser();
         user.setGender(request.getGender());
         user.setName(request.getName());
-        user.setProfilePicture(request.getProfilePicture());
         user = userRepository.save(user);
-        user.setAddress(updateAddress(request, user, country));
+
+        Profile customerProfile = getCurrentUser().getCustomerProfile();
+        customerProfile.setProfilePic(request.getProfilePicture());
+        customerProfile = profileRepository.save(customerProfile);
+
+        user.setCustomerProfile(customerProfile);
+        updateAddress(request, user, country);
         return user;
     }
 
@@ -219,17 +232,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateMailSetting(UpdateMailSettingRequest request) {
-        User user = getCurrentUser();
-        MailSetting mailSetting = user.getMailSetting();
+    public MailSetting updateMailSetting(UpdateMailSettingRequest request) {
+        MailSetting mailSetting = mailSettingRepository.findByUser(tokenProvider.getCurrentUser()).orElse(new MailSetting());
         mailSetting.setPromotionEmail(request.isPromotionEmail());
         mailSetting.setSupportEmail(request.isSupportEmail());
         mailSetting.setOrderEmail(request.isOrderEmail());
         mailSetting.setOtherEmail(request.isOtherEmail());
         mailSetting.setNewsEmail(request.isNewsEmail());
+        mailSetting.setUser(tokenProvider.getCurrentUser());
         mailSetting = mailSettingRepository.save(mailSetting);
-        user.setMailSetting(mailSetting);
-        return user;
+        return mailSetting;
+    }
+
+    @Override
+    public PaymentDetail updatePaymentDetail(PaymentDetailDto request) {
+        //todo validate account details
+        PaymentDetail paymentDetail = paymentDetailRepository.findByUser(tokenProvider.getCurrentUser()).orElse(new PaymentDetail());
+        paymentDetail.setAccountName(request.getAccountName());
+        paymentDetail.setAccountNumber(request.getAccountNumber());
+        paymentDetail.setBankName(request.getBankName());
+        paymentDetail.setBankCode(request.getBankCode());
+        paymentDetail.setUser(tokenProvider.getCurrentUser());
+        paymentDetail = paymentDetailRepository.save(paymentDetail);
+        return paymentDetail;
     }
 
     @Override
@@ -254,7 +279,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest dto) {
+    public LoginResponse login(LoginRequest dto, ProfileType profileType) {
 
         User user = userRepository.findFirstByEmail(dto.getEmail()).orElseThrow(()->new NotFoundException("User not found"));
 
@@ -266,11 +291,11 @@ public class UserServiceImpl implements UserService {
             throw new ForbiddenException("Account suspended. Please contact support");
         }
 
-        if (dto.getProfile() == ProfileType.PRINTER && user.getPrinterProfile() == null) {
+        if (profileType == ProfileType.PRINTER && user.getPrinterProfile() == null) {
             throw new ForbiddenException("You do not have a printer profile attached to this email");
         }
 
-        if (dto.getProfile() == ProfileType.DESIGNER && user.getDesignerProfile() == null) {
+        if (profileType == ProfileType.DESIGNER && user.getDesignerProfile() == null) {
             throw new ForbiddenException("You do not have a designer profile attached to this email");
         }
 
@@ -294,6 +319,23 @@ public class UserServiceImpl implements UserService {
         return getCurrentUser();
     }
 
+    @Override
+    public Address getAddress() {
+        User user = getCurrentUser();
+        return addressRepository.findByUser(user).orElse(createAddress(user));
+    }
+
+    @Override
+    public MailSetting getMailSetting() {
+        User user = getCurrentUser();
+        return mailSettingRepository.findByUser(user).orElse(createMailSetting(user));
+    }
+
+    @Override
+    public PaymentDetail getPaymentDetails() {
+        return paymentDetailRepository.findByUser(getCurrentUser()).orElse(createPaymentDetails(getCurrentUser()));
+    }
+
     private void validateDesignerRegistration(RegistrationRequest dto) {
         if (dto.getBusinessName() == null) {
             throw new BadRequestException("Shop name is required");
@@ -303,7 +345,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Shop name too short, minimum character is 3");
         }
 
-        if (profileRepository.existsByProfileTypeAndBusinessNameAllIgnoreCase(ProfileType.DESIGNER, dto.getBusinessName())) {
+        if (profileRepository.existsByProfileTypeAndNameAllIgnoreCase(ProfileType.DESIGNER, dto.getBusinessName())) {
             throw new BadRequestException("Shop name already exists");
         }
     }
@@ -317,7 +359,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Business name too short, minimum character is 3");
         }
 
-        if (profileRepository.existsByProfileTypeAndBusinessNameAllIgnoreCase(ProfileType.PRINTER, dto.getBusinessName())) {
+        if (profileRepository.existsByProfileTypeAndNameAllIgnoreCase(ProfileType.PRINTER, dto.getBusinessName())) {
             throw new BadRequestException("Business name already exists");
         }
     }
@@ -331,7 +373,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Username too short, minimum character is 3");
         }
 
-        if (userRepository.existsByUsernameAllIgnoreCase(dto.getUsername())) {
+        if (profileRepository.existsByProfileTypeAndNameAllIgnoreCase(ProfileType.CUSTOMER, dto.getUsername())) {
             throw new BadRequestException("Username already exists");
         }
     }
@@ -354,21 +396,23 @@ public class UserServiceImpl implements UserService {
         return authorities;
     }
 
-    private User createUser(RegistrationRequest dto) {
+    private User createUser(RegistrationRequest dto, ProfileType profileType) {
 
         String userName = createUserName(dto);
         User user = new User();
-        user.setUsername(userName);
         user.setEmail(dto.getEmail().trim());
         user.setName(dto.getName().trim());
         user.setEnabled(false);
-        user.setRoles(getRoles(dto.getProfile()));
+        user.setRoles(getRoles(profileType));
         user.setPassword(new BCryptPasswordEncoder().encode(dto.getPassword()));
         user.setActivated(false);
 
         user =  userRepository.save(user);
         createMailSetting(user, dto);
-        createProfile(dto.getBusinessName(), dto.getProfile(), user);
+        createAddress(user);
+        createPaymentDetails(user);
+        createCustomerProfile(userName, user);
+        createProfile(dto.getBusinessName(), profileType, user);
         return user;
     }
 
@@ -383,7 +427,7 @@ public class UserServiceImpl implements UserService {
     private String generateUserName(String name) {
         name = name.replaceAll("\\s+", "");
         name = name + "-" +RandomStringUtils.randomAlphanumeric(3, 6);
-        while (userRepository.existsByUsernameAllIgnoreCase(name)) {
+        while (profileRepository.existsByProfileTypeAndNameAllIgnoreCase(ProfileType.CUSTOMER, name)) {
             name = name + RandomStringUtils.randomAlphanumeric(3, 6);
         }
         return name;
@@ -395,9 +439,11 @@ public class UserServiceImpl implements UserService {
         }
 
         Profile profile = new Profile();
-        profile.setBusinessName(name);
+        profile.setName(name);
         profile.setUser(user);
+        profile.setProfileType(profileType);
         profile = profileRepository.save(profile);
+        createRating(profile);
 
         if (profileType == ProfileType.DESIGNER) {
             user.setDesignerProfile(profile);
@@ -405,6 +451,15 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setPrinterProfile(profile);
+    }
+
+    private void createCustomerProfile(String name,  User user) {
+        Profile profile = new Profile();
+        profile.setName(name);
+        profile.setUser(user);
+        profile.setProfileType(ProfileType.CUSTOMER);
+        profile = profileRepository.save(profile);
+        user.setCustomerProfile(profile);
     }
 
     private void createMailSetting(User user, RegistrationRequest dto) {
@@ -415,24 +470,51 @@ public class UserServiceImpl implements UserService {
         mailSetting.setOtherEmail(true);
         mailSetting.setNewsEmail(true);
         mailSetting.setUser(user);
-        mailSetting = mailSettingRepository.save(mailSetting);
-        user.setMailSetting(mailSetting);
+        mailSettingRepository.save(mailSetting);
     }
 
-    private Address updateAddress(UpdateUserRequest request, User user, String country) {
-        Address address = user.getAddress();
-        if (address == null) {
-            address = new Address();
-        }
+    private MailSetting createMailSetting(User user) {
+        MailSetting mailSetting = new MailSetting();
+        mailSetting.setOrderEmail(true);
+        mailSetting.setOtherEmail(true);
+        mailSetting.setNewsEmail(true);
+        mailSetting.setUser(user);
+        mailSettingRepository.save(mailSetting);
+        return mailSetting;
+    }
 
+    private void updateAddress(UpdateUserRequest request, User user, String country) {
+
+        Address address = addressRepository.findByUser(user).orElse(new Address());
         address.setAddress(request.getAddress());
         address.setCity(request.getCity());
         address.setCountry(country);
         address.setPostalCode(request.getPostalCode());
         address.setState(request.getState());
         address.setUser(user);
-        return addressRepository.save(address);
+        addressRepository.save(address);
     }
+
+    private Address createAddress(User user) {
+        Address address = addressRepository.findByUser(user).orElse(new Address());
+        address.setUser(user);
+        addressRepository.save(address);
+        return address;
+    }
+
+    private PaymentDetail createPaymentDetails(User user) {
+        PaymentDetail paymentDetail = paymentDetailRepository.findByUser(user).orElse(new PaymentDetail());
+        paymentDetail.setUser(user);
+        paymentDetail = paymentDetailRepository.save(paymentDetail);
+        return paymentDetail;
+    }
+
+    private void createRating(Profile profile) {
+        Rating rating = ratingRepository.findByProfile(profile).orElse(new Rating());
+        rating.setProfile(profile);
+        ratingRepository.save(rating);
+    }
+
     private User getCurrentUser() {
         return userRepository.findFirstByEmail(tokenProvider.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
     }

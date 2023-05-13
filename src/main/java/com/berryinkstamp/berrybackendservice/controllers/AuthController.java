@@ -7,6 +7,7 @@ import com.berryinkstamp.berrybackendservice.dtos.request.RegistrationRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.ResetPasswordRequest;
 import com.berryinkstamp.berrybackendservice.dtos.response.LoginResponse;
 import com.berryinkstamp.berrybackendservice.dtos.response.RegistrationResponse;
+import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,8 +32,8 @@ public class AuthController {
 
    @Operation(summary = "Register user", description = "Register user")
    @PostMapping(value = "/register")
-   public RegistrationResponse userRegistration(@RequestBody @Valid RegistrationRequest dto) {
-      return userService.registerUser(dto);
+   public RegistrationResponse userRegistration(@RequestBody @Valid RegistrationRequest dto, @RequestHeader(value = "profileType") ProfileType profileType) {
+      return userService.registerUser(dto, profileType);
    }
 
    @Operation(summary = "Resend OTP", description = "Resend OTP")
@@ -54,8 +56,8 @@ public class AuthController {
 
    @Operation(summary = "Login to all profile", description = "Login to all profile")
    @PostMapping("/login")
-   public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest) {
-      return userService.login(loginRequest);
+   public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest, @RequestHeader(value = "profileType")ProfileType profileType) {
+      return userService.login(loginRequest, profileType);
    }
 
 

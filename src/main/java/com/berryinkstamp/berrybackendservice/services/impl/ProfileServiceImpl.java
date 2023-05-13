@@ -5,9 +5,7 @@ import com.berryinkstamp.berrybackendservice.dtos.request.UpdateProfileRequest;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
 import com.berryinkstamp.berrybackendservice.models.Profile;
-import com.berryinkstamp.berrybackendservice.models.User;
 import com.berryinkstamp.berrybackendservice.repositories.ProfileRepository;
-import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
 import com.berryinkstamp.berrybackendservice.services.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,8 +22,6 @@ public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileRepository profileRepository;
     private final TokenProvider tokenProvider;
-    private final UserRepository userRepository;
-
 
 
     @Override
@@ -43,14 +39,13 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public Profile updateProfile(UpdateProfileRequest request, Long profileId) {
-        Optional<Profile> optionalProfile = profileRepository.findById(profileId);
-        if (optionalProfile.isEmpty()) {
-            throw new NotFoundException("user profile not found");
+    public Profile updateProfile(UpdateProfileRequest request, ProfileType profileType) {
+        Profile profile = tokenProvider.getCurrentUser().getProfile(profileType);
+        if (profile == null) {
+            throw new NotFoundException("profile not found");
         }
 
-        Profile profile = optionalProfile.get();
-        profile.setBusinessName(request.getName());
+        profile.setName(request.getName());
         profile.setBio(request.getBio());
         profile.setCategories(String.join(",", request.getCategories()));
         profile.setProfilePic(request.getProfilePic());

@@ -14,9 +14,6 @@ import java.util.List;
 @Getter
 public class UpdateProfileRequest {
 
-    @NotNull(message = "profile is required")
-    private ProfileType profile;
-
     @NotBlank(message = "name is required")
     private String name;
 

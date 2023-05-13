@@ -1,4 +1,4 @@
-package com.berryinkstamp.berrybackendservice.controllers;
+package com.berryinkstamp.berrybackendservice.controllers.publicAPI;
 
 import com.berryinkstamp.berrybackendservice.annotations.WrapApiResponse;
 import com.berryinkstamp.berrybackendservice.models.Collection;

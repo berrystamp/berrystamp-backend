@@ -13,7 +13,8 @@ import java.util.Optional;
 
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
-    boolean existsByProfileTypeAndBusinessNameAllIgnoreCase(ProfileType profileType, String businessName);
+
+    boolean existsByProfileTypeAndNameAllIgnoreCase(ProfileType profileType, String businessName);
 
     Page<Profile> findByProfileType(ProfileType profileType, Pageable pageable);
 

@@ -22,6 +22,4 @@ public class LoginRequest {
 
    private Boolean rememberMe;
 
-   private ProfileType profile;
-
 }

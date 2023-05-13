@@ -1,6 +1,7 @@
 package com.berryinkstamp.berrybackendservice.models;
 
 import com.berryinkstamp.berrybackendservice.enums.Gender;
+import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.enums.RoleName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -47,12 +48,8 @@ public class User extends AbstractAuditingEntity<User> implements Serializable {
 
    private String phoneNumber;
 
-   private String profilePicture;
-
    @Enumerated(EnumType.STRING)
    private Gender gender;
-
-   private String username;
 
    @Column(name = "enabled", columnDefinition="BOOLEAN DEFAULT false")
    private boolean enabled;
@@ -73,11 +70,10 @@ public class User extends AbstractAuditingEntity<User> implements Serializable {
            inverseJoinColumns = {@JoinColumn(name = "ROLE_ID", referencedColumnName = "ID")})
    private Set<Role> roles = new HashSet<>();
 
-   @OneToOne(fetch = FetchType.EAGER)
-   private MailSetting mailSetting;
 
-   @OneToOne(fetch = FetchType.EAGER)
-   private Address address;
+   @OneToOne
+   @JoinColumn(name = "customer_profile_id", referencedColumnName = "id")
+   private Profile customerProfile;
 
    @OneToOne
    @JoinColumn(name = "printer_profile_id", referencedColumnName = "id")
@@ -88,10 +84,22 @@ public class User extends AbstractAuditingEntity<User> implements Serializable {
    private Profile designerProfile;
 
 
-
    @JsonProperty(value = "roles")
-   private List<RoleName> getRolesOutput() {
+   public List<RoleName> getRolesOutput() {
       return roles.stream().map(Role::getName).collect(Collectors.toList());
+   }
+
+   @JsonIgnore
+   public Profile getProfile(ProfileType profileType) {
+      if (profileType == ProfileType.PRINTER) {
+         return printerProfile;
+      }
+
+      if (profileType == ProfileType.DESIGNER) {
+         return designerProfile;
+      }
+
+      return customerProfile;
    }
 
 }

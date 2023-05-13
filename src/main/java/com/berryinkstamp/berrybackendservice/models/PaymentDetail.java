@@ -35,5 +35,5 @@ public class PaymentDetail extends AbstractAuditingEntity<PaymentDetail> impleme
     @JsonIgnore
     @OneToOne
     @JoinColumn(nullable = false)
-    private Profile profile;
+    private User user;
 }

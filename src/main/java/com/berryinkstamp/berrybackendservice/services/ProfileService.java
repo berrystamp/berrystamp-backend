@@ -12,5 +12,5 @@ public interface ProfileService {
 
     Profile getUserProfile(Long userId);
 
-    Profile updateProfile(UpdateProfileRequest request, Long profileId);
+    Profile updateProfile(UpdateProfileRequest request, ProfileType profileType);
 }

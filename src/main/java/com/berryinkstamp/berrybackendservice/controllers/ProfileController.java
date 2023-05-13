@@ -2,11 +2,7 @@ package com.berryinkstamp.berrybackendservice.controllers;
 
 import com.berryinkstamp.berrybackendservice.annotations.WrapApiResponse;
 import com.berryinkstamp.berrybackendservice.dtos.request.AddProfileRequest;
-import com.berryinkstamp.berrybackendservice.dtos.request.UpdateMailSettingRequest;
-import com.berryinkstamp.berrybackendservice.dtos.request.UpdatePasswordRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.UpdateProfileRequest;
-import com.berryinkstamp.berrybackendservice.dtos.request.UpdateUserRequest;
-import com.berryinkstamp.berrybackendservice.dtos.request.UpdateUsernameRequest;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.models.Profile;
 import com.berryinkstamp.berrybackendservice.models.User;
@@ -16,14 +12,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @SecurityRequirement(name = "Bearer Authentication")
@@ -44,9 +37,9 @@ public class ProfileController {
     }
 
     @Operation(summary = "Update a profile", description = "Update a profile")
-    @PutMapping("/{profileId}")
-    public Profile updateProfile(@RequestBody @Valid UpdateProfileRequest request, Long profileId) {
-        return profileService.updateProfile(request, profileId);
+    @PutMapping
+    public Profile updateProfile(@RequestBody @Valid UpdateProfileRequest request, @RequestHeader(value = "profileType") ProfileType profileType) {
+        return profileService.updateProfile(request, profileType);
     }
 
 }
