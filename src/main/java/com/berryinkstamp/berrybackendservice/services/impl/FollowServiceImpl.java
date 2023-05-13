@@ -3,6 +3,7 @@ package com.berryinkstamp.berrybackendservice.services.impl;
 
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
 import com.berryinkstamp.berrybackendservice.dtos.request.FollowRequest;
+import com.berryinkstamp.berrybackendservice.dtos.response.ConnectionStatus;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
 import com.berryinkstamp.berrybackendservice.models.Follow;
@@ -66,5 +67,13 @@ public class FollowServiceImpl implements FollowService {
             followRepository.delete(follow);
         }
         return Map.of();
+    }
+
+    @Override
+    public ConnectionStatus getConnectionStatus(Long profileId, ProfileType profileType) {
+        Profile follower = tokenProvider.getCurrentUser().getProfile(profileType);
+        Profile following = profileRepository.findById(profileId).orElseThrow(() -> new NotFoundException("profile not found"));
+        Follow follow = followRepository.findFirstByFollowerAndFollowing(follower, following).orElse(null);
+        return new ConnectionStatus(follow != null);
     }
 }
