@@ -1,7 +1,10 @@
 package com.berryinkstamp.berrybackendservice.services;
 
+import com.berryinkstamp.berrybackendservice.dtos.request.MockImagesDto;
 import com.berryinkstamp.berrybackendservice.dtos.request.NewDesignRequest;
+import com.berryinkstamp.berrybackendservice.dtos.request.UpdateDesignRequest;
 import com.berryinkstamp.berrybackendservice.models.Design;
+import com.berryinkstamp.berrybackendservice.models.MockImages;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -10,6 +13,13 @@ import java.util.Map;
 
 public interface DesignService {
     Design createDesign(NewDesignRequest designRequest);
+
+    Design updateDesign(Long id, UpdateDesignRequest designRequest);
+
+    Map<Object,Object> deleteMock(Long mockId, Long designId);
+
+    MockImages addMock(MockImagesDto dto, Long designId);
+
     Map<Object,Object> deleteDesign(Long designId);
     Design fetchDesignById(Long designId);
     Page<Design> fetchAllDesignsForDesigner(Pageable pageable);

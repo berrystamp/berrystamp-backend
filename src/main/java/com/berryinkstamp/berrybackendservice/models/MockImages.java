@@ -20,6 +20,8 @@ public class MockImages extends AbstractAuditingEntity<MockImages>implements Ser
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String name;
+
     private Boolean limitedStatus;
     private String imageUrl;
     @Column(name = "available_qty")

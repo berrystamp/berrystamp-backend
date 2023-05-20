@@ -4,6 +4,7 @@ package com.berryinkstamp.berrybackendservice.services.impl;
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
 import com.berryinkstamp.berrybackendservice.dtos.request.MockImagesDto;
 import com.berryinkstamp.berrybackendservice.dtos.request.NewDesignRequest;
+import com.berryinkstamp.berrybackendservice.dtos.request.UpdateDesignRequest;
 import com.berryinkstamp.berrybackendservice.exceptions.BadRequestException;
 import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
 import com.berryinkstamp.berrybackendservice.models.Design;
@@ -19,7 +20,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,35 +49,34 @@ public class DesignServiceImpl implements DesignService {
             throw new BadRequestException("Name already exist for this design!");
         }
 
-        var design = new Design();
+        Design design = new Design();
         mapDesignRequestDtoToEntity(design, designRequest, tokenProvider.getCurrentUser());
         design = designRepository.save(design);
-        var mocks = createkMocks(design, designRequest.getMocks());
+        Set<MockImages> mocks = createkMocks(design, designRequest.getMocks());
         design.setMocks(mocks);
         return design;
     }
 
-    //    @Override
-//    public Design updateDesign(Long id, NewDesignRequest designRequest) {
-//        Optional<Design> optionalDesign = designRepository.findByIdAndDesignerAndDeletedFalse(id, tokenProvider.getCurrentUser().getDesignerProfile());
-//        if (optionalDesign.isEmpty()) {
-//            throw new NotFoundException("Design not found");
-//        }
-//
-//        if (designNameExistForUser(optionalDesign.get(), tokenProvider.getCurrentUser().getDesignerProfile(), designRequest.getName())) {
-//            throw new BadRequestException("Name already exist for this design!");
-//        }
-//        var design = mapDesignRequestDtoToEntity(optionalDesign.get(), designRequest, tokenProvider.getCurrentUser());
-//        design = designRepository.save(design); todo: update mocks
-//        var mocks = createkMocks(design, designRequest.getMocks());
-//        design.setMocks(mocks);
-//        return design;
-//    }
-//
+    @Override
+    public Design updateDesign(Long id, UpdateDesignRequest designRequest) {
+        Optional<Design> optionalDesign = designRepository.findByIdAndDesignerAndDeletedFalse(id, tokenProvider.getCurrentUser().getDesignerProfile());
+        if (optionalDesign.isEmpty()) {
+            throw new NotFoundException("Design not found");
+        }
+
+        if (designNameExistForUser(optionalDesign.get(), tokenProvider.getCurrentUser().getDesignerProfile(), designRequest.getName())) {
+            throw new BadRequestException("Name already exist for this design!");
+        }
+        Design design = mapDesignRequestDtoToEntity(optionalDesign.get(), designRequest, tokenProvider.getCurrentUser());
+        design = designRepository.save(design);
+        return design;
+    }
+
     private Set<MockImages> createkMocks(Design design, List<MockImagesDto> mockImagesDtos) {
         HashSet<MockImages> mockImages = new HashSet<>();
         mockImagesDtos.forEach(a -> {
             MockImages mockImage = new MockImages();
+            mockImage.setName(a.getName());
             mockImage.setAvailableQty(a.getAvailableQty());
             mockImage.setImageUrl(a.getImageUrl());
             mockImage.setLimitedStatus(a.getLimitedStatus());
@@ -85,6 +84,42 @@ public class DesignServiceImpl implements DesignService {
             mockImages.add(mockImageRepository.save(mockImage));
         });
         return mockImages;
+    }
+
+    @Override
+    public Map<Object,Object> deleteMock(Long mockId, Long designId) {
+        Optional<Design> optionalDesign = designRepository.findByIdAndDesignerAndDeletedFalse(designId, tokenProvider.getCurrentUser().getDesignerProfile());
+        if (optionalDesign.isEmpty()) {
+            throw new NotFoundException("Design not found");
+        }
+
+        Optional<MockImages> mockImage = mockImageRepository.findByIdAndDesign(mockId, optionalDesign.get());
+        if (mockImage.isEmpty()) {
+            throw new NotFoundException("Mock not found");
+        }
+
+        mockImageRepository.delete(mockImage.get());
+        //TODO: push to audit
+        return new HashMap<>();
+    }
+
+    @Override
+    public MockImages addMock(MockImagesDto dto, Long designId) {
+        Optional<Design> optionalDesign = designRepository.findByIdAndDesignerAndDeletedFalse(designId, tokenProvider.getCurrentUser().getDesignerProfile());
+        if (optionalDesign.isEmpty()) {
+            throw new NotFoundException("Design not found");
+        }
+
+        MockImages mockImage = new MockImages();
+        mockImage.setName(dto.getName());
+        mockImage.setAvailableQty(dto.getAvailableQty());
+        mockImage.setImageUrl(dto.getImageUrl());
+        mockImage.setLimitedStatus(dto.getLimitedStatus());
+        mockImage.setDesign(optionalDesign.get());
+
+        mockImage = mockImageRepository.save(mockImage);
+        //TODO: push to audit
+        return mockImage;
     }
 
     @Override
@@ -167,4 +202,18 @@ public class DesignServiceImpl implements DesignService {
         return design;
     }
 
+    private Design mapDesignRequestDtoToEntity(Design design, UpdateDesignRequest designRequest, User user){
+        design.setAmount(designRequest.getAmount());
+        design.setDescription(designRequest.getDescription());
+        design.setCategory(String.join(",", designRequest.getCategory()));
+        design.setPrinter(designRequest.getPrinterId());
+        design.setDesigner(user.getDesignerProfile());
+        design.setImageUrlBack(designRequest.getBackImageUrl());
+        design.setImageUrlFront(designRequest.getFrontImageUrl());
+        design.setName(designRequest.getName());
+        design.setTag(String.join(",", designRequest.getTags()));
+        design.setSlug(Utils.generateSlug(designRequest.getName()));
+
+        return design;
+    }
 }

@@ -15,6 +15,7 @@ import com.berryinkstamp.berrybackendservice.repositories.RatingRepository;
 import com.berryinkstamp.berrybackendservice.repositories.ReviewRepository;
 import com.berryinkstamp.berrybackendservice.services.RatingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,6 +32,18 @@ public class RatingServiceImpl implements RatingService {
     private final ProfileRepository profileRepository;
 
     private final TokenProvider tokenProvider;
+
+    @Value("${rating.weight.service:0.65}")
+    private double serviceWeight;
+
+    @Value("${rating.weight.communication:0.1}")
+    private double communicationWeight;
+
+    @Value("${rating.weight.recommendation:0.15}")
+    private double recommendationWeight;
+
+    @Value("${rating.weight.delivery:0.1}")
+    private double deliveryWeight;
 
     @Override
     public Map<String, Object> getProfileRating(Long ProfileId) {
@@ -56,18 +69,28 @@ public class RatingServiceImpl implements RatingService {
             throw new BadRequestException("not allowed to rate yourself");
         }
 
+        int star = calculateStar(reviewDto);
+
         Review review = new Review();
         review.setComment(reviewDto.getComment());
         review.setRatingUser(ratingProfile);
         review.setRatedUser(ratedProfile);
-        review.setStars(reviewDto.getStars());
+        review.setService(reviewDto.getService());
+        review.setCommunication(reviewDto.getCommunication());
+        review.setDeliveryTime(reviewDto.getDeliveryTime());
+        review.setRecommendation(reviewDto.getRecommendation());
+        review.setStars(star);
         review = reviewRepository.save(review);
 
         Rating rating = ratingRepository.findByProfile(ratedProfile).orElse(createRating(ratedProfile));
-        rating.updateStarCount(reviewDto.getStars());
+        rating.updateStarCount(star);
         ratingRepository.save(rating);
 
         return review;
+    }
+
+    private int calculateStar(ReviewDto reviewDto) {
+        return (int) ((serviceWeight * reviewDto.getService()) + (recommendationWeight * reviewDto.getRecommendation()) + (communicationWeight * reviewDto.getCommunication()) + (deliveryWeight * reviewDto.getDeliveryTime()));
     }
 
     private Rating createRating(Profile profile) {

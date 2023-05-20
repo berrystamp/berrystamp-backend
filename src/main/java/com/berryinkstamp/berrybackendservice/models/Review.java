@@ -30,6 +30,13 @@ public class Review extends AbstractAuditingEntity<Review> implements Serializab
 
     private int stars;
 
+    private int service;
+
+    private int deliveryTime;
+
+    private int recommendation;
+    private int communication;
+
     @ManyToOne(fetch = FetchType.EAGER)
     private Profile ratedUser;
 
