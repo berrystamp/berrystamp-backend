@@ -1,12 +1,11 @@
 package com.berryinkstamp.berrybackendservice.services;
 
+import com.berryinkstamp.berrybackendservice.dtos.request.MarkMessageAsRead;
 import com.berryinkstamp.berrybackendservice.dtos.request.Message;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.models.ChatMessage;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.security.core.Authentication;
 
-import java.security.Principal;
 import java.util.List;
 
 public interface MessageService {
@@ -14,7 +13,8 @@ public interface MessageService {
 
     void processIndividualMessage(Message msg, Authentication principal);
 
+    void markMessageAsRead(MarkMessageAsRead markMessageAsRead, Authentication principal);
+
     void processOrderMessage(Message msg, Authentication principal);
 
-    void markMessageAsRead(Long messageId);
 }

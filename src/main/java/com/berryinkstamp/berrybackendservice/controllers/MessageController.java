@@ -1,5 +1,6 @@
 package com.berryinkstamp.berrybackendservice.controllers;
 
+import com.berryinkstamp.berrybackendservice.dtos.request.MarkMessageAsRead;
 import com.berryinkstamp.berrybackendservice.dtos.request.Message;
 import com.berryinkstamp.berrybackendservice.models.ChatMessage;
 import com.berryinkstamp.berrybackendservice.services.MessageService;
@@ -30,7 +31,7 @@ public class MessageController {
     }
 
     @MessageMapping("/chat.markAsRead")
-    public void markMessageAsRead(@Payload Long messageId) {
-       messageService.markMessageAsRead(messageId);
+    public void markMessageAsRead(@Payload MarkMessageAsRead markMessageAsRead, Authentication accessor) {
+       messageService.markMessageAsRead(markMessageAsRead, accessor);
     }
 }

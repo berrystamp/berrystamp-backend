@@ -2,6 +2,7 @@
 package com.berryinkstamp.berrybackendservice.services.impl;
 
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
+import com.berryinkstamp.berrybackendservice.dtos.request.MarkMessageAsRead;
 import com.berryinkstamp.berrybackendservice.dtos.request.Message;
 import com.berryinkstamp.berrybackendservice.enums.ConversationType;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -101,9 +103,24 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void markMessageAsRead(Long messageId) {
-        Optional<ChatMessage> optionalMessage = chatMessageRepository.findById(messageId);
+    public void markMessageAsRead(MarkMessageAsRead markMessageAsRead, Authentication principal) {
+        String email = principal.getName();
+        Optional<User> user = userRepository.findFirstByEmail(email);
+        if (user.isEmpty()) {
+            return;
+        }
+
+        Optional<ChatMessage> optionalMessage = chatMessageRepository.findById(markMessageAsRead.getMessageId());
         if (optionalMessage.isEmpty()) {
+            return;
+        }
+
+        Optional<Profile> receiver = profileRepository.findByIdAndUser(markMessageAsRead.getReceiverProfileId(), user.get());
+        if (receiver.isEmpty()) {
+            return;
+        }
+
+        if (!Objects.equals(optionalMessage.get().getReceiver(), receiver.get())) {
             return;
         }
 
@@ -163,7 +180,6 @@ public class MessageServiceImpl implements MessageService {
         conversation.setHasUnreadMessages(true);
         conversation.setType(ConversationType.INDIVIDUAL);
         conversation.setLastMessageTimestamp(LocalDateTime.now());
-        conversation.setUnreadMessageCount(conversation.getUnreadMessageCount() + 1);
         return conversationRepository.save(conversation);
     }
 
@@ -179,7 +195,6 @@ public class MessageServiceImpl implements MessageService {
         conversation.setHasUnreadMessages(true);
         conversation.setType(ConversationType.ORDER);
         conversation.setLastMessageTimestamp(LocalDateTime.now());
-        conversation.setUnreadMessageCount(conversation.getUnreadMessageCount() + 1);
         return conversationRepository.save(conversation);
     }
 
