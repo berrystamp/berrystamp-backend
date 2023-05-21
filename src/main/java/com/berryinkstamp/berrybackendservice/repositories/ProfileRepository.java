@@ -18,6 +18,8 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
     Page<Profile> findByProfileType(ProfileType profileType, Pageable pageable);
 
+    Optional<Profile> findByIdAndUser(Long id, User user);
+
 
 
 
