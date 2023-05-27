@@ -411,7 +411,6 @@ public class UserServiceImpl implements UserService {
         createMailSetting(user, dto);
         createAddress(user);
         createPaymentDetails(user);
-        createCustomerProfile(userName, user);
         createProfile(dto.getBusinessName(), profileType, user);
         return user;
     }
