@@ -1,8 +1,6 @@
 package com.berryinkstamp.berrybackendservice.controllers;
 
-import com.berryinkstamp.berrybackendservice.dtos.request.MarkMessageAsRead;
 import com.berryinkstamp.berrybackendservice.dtos.request.Message;
-import com.berryinkstamp.berrybackendservice.models.ChatMessage;
 import com.berryinkstamp.berrybackendservice.services.MessageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +28,4 @@ public class MessageController {
         messageService.processOrderMessage(msg, accessor);
     }
 
-    @MessageMapping("/chat.markAsRead")
-    public void markMessageAsRead(@Payload MarkMessageAsRead markMessageAsRead, Authentication accessor) {
-       messageService.markMessageAsRead(markMessageAsRead, accessor);
-    }
 }

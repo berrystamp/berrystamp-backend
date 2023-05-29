@@ -98,39 +98,10 @@ public class MessageServiceImpl implements MessageService {
         message.setSender(from.get());
         message = chatMessageRepository.save(message);
 
-        messagingTemplate.convertAndSendToUser(conversation.getConversationName(), "/topic/individual/conversation", message);
+        messagingTemplate.convertAndSendToUser(String.valueOf(msg.getToProfileId()),  "/individual"  , message);
 
     }
 
-    @Override
-    public void markMessageAsRead(MarkMessageAsRead markMessageAsRead, Authentication principal) {
-        String email = principal.getName();
-        Optional<User> user = userRepository.findFirstByEmail(email);
-        if (user.isEmpty()) {
-            return;
-        }
-
-        Optional<ChatMessage> optionalMessage = chatMessageRepository.findById(markMessageAsRead.getMessageId());
-        if (optionalMessage.isEmpty()) {
-            return;
-        }
-
-        Optional<Profile> receiver = profileRepository.findByIdAndUser(markMessageAsRead.getReceiverProfileId(), user.get());
-        if (receiver.isEmpty()) {
-            return;
-        }
-
-        if (!Objects.equals(optionalMessage.get().getReceiver(), receiver.get())) {
-            return;
-        }
-
-        ChatMessage message = optionalMessage.get();
-        message.setRead(true);
-        chatMessageRepository.save(message);
-
-        Conversation conversation = message.getConversation();
-        conversation.setUnreadMessageCount(conversation.getUnreadMessageCount() );
-    }
 
     @Override
     public void processOrderMessage(Message msg, Authentication principal) {
@@ -162,7 +133,7 @@ public class MessageServiceImpl implements MessageService {
         message.setSender(from.get());
         message = chatMessageRepository.save(message);
 
-        messagingTemplate.convertAndSendToUser(conversation.getConversationName(), "/topic/order/conversation", message);
+        messagingTemplate.convertAndSendToUser(String.valueOf(msg.getToProfileId()),  "/order"  , message);
 
     }
 

@@ -13,8 +13,6 @@ public interface MessageService {
 
     void processIndividualMessage(Message msg, Authentication principal);
 
-    void markMessageAsRead(MarkMessageAsRead markMessageAsRead, Authentication principal);
-
     void processOrderMessage(Message msg, Authentication principal);
 
 }
