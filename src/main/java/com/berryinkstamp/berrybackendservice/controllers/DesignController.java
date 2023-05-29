@@ -32,6 +32,7 @@ public class DesignController {
     @Operation(summary = "Create Design", description = "Create Design")
     @PostMapping()
     private Design createDesign(@Valid @RequestBody NewDesignRequest designRequest){
+        //todo set default status for design
         return designService.createDesign(designRequest);
     }
 

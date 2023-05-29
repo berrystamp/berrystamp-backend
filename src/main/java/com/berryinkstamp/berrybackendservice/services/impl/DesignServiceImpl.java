@@ -168,6 +168,8 @@ public class DesignServiceImpl implements DesignService {
         if(collectionId == null && designerId == null && tag == null && category == null){
             return designRepository.findByDeleted(false, pageable);
         }
+
+        //todo should fetch only designs that are approved
         return designRepository
                 .findByCollectionIdOrDesignerIdOrTagContainingIgnoreCaseOrCategoryContainingIgnoreCaseAndDeletedFalse(
                         collectionId,

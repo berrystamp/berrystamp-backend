@@ -65,4 +65,8 @@ public class CollectionController {
     private Page<Collection> fetchDesignerCollection(Pageable pageable){
         return collectionService.fetchAllDesignerCollections(pageable);
     }
+
+    //todo create new endpoint for admin. it will be used to either decline aor accept a design.
+    //todo admin should be able fetch all design and filter by status
+    //todo admin fetch all profile and you should be able to filter by profile
 }

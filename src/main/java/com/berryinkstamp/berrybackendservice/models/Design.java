@@ -57,6 +57,7 @@ public class Design extends AbstractAuditingEntity<Design> implements Serializab
     @Column(name = "enabled", columnDefinition="BOOLEAN DEFAULT false")
     private boolean deleted;
 
+    //todo add field boolean approved with false. and status : enum awaiting approval, approved declined
     @JsonProperty("tags")
     public List<String>tags() { return tag == null? null : List.of(tag.split(","));}
 
