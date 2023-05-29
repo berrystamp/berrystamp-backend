@@ -408,6 +408,7 @@ public class UserServiceImpl implements UserService {
         user.setActivated(false);
 
         user =  userRepository.save(user);
+        createCustomerProfile(userName, user);
         createMailSetting(user, dto);
         createAddress(user);
         createPaymentDetails(user);
