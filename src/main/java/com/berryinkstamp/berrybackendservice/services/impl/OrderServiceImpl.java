@@ -51,14 +51,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<Order> fetchAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable);
+    public Page<Order> fetchAllOrders(OrderStatus orderStatus, Pageable pageable) {
+        return orderRepository.findAllByOrderStatus(orderStatus, pageable);
     }
 
     @Override
     public void orderDecision(Long orderId, Boolean decision) {
-        //todo validate customer and order
-        orderRepository.findById(orderId)
+        var profile = tokenProvider.getCurrentUser().getProfile(ProfileType.CUSTOMER);
+        orderRepository.findOrderByCustomerProfileAndId(profile, orderId)
                 .map(order -> {
                     if (decision) {
                         order.setOrderStatus(OrderStatus.ACTIVE);
@@ -67,13 +67,12 @@ public class OrderServiceImpl implements OrderService {
                     }
                     return orderRepository.save(order);
                 })
-                .orElseThrow(() -> new NotFoundException("Order with id not found"));
+                .orElseThrow(() -> new NotFoundException("Order with id for profile not found"));
     }
 
     @Override
-    public Page<Order> fetchAllLoggedInCustomerOrders(Pageable pageable) {
-        return Optional.ofNullable(tokenProvider.getCurrentUser())
-                .map(User::getCustomerProfile)
+    public Page<Order> fetchAllLoggedInCustomerOrders(ProfileType profileType, Pageable pageable) {
+        return Optional.ofNullable(tokenProvider.getCurrentUser().getProfile(profileType))
                 .map(profile -> orderRepository.findAllByCustomerProfile(profile,pageable))
                 .orElseThrow(() -> new UnknownException("an error occurred"));
     }
@@ -85,6 +84,12 @@ public class OrderServiceImpl implements OrderService {
                 .map(design -> mapToPrintRequestEntity(design, printRequestDto))
                 .map(printRequest -> mapPrintRequestToOrderRequestEntity(printRequest,printRequestDto,profile))
                 .orElseThrow(() -> new NotFoundException("No design with Id present"));
+    }
+
+    @Override
+    public Order fetchOrderById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Order with Id does not exist"));
     }
 
     private OrderRequest mapPrintRequestToOrderRequestEntity(PrintRequest printRequest, PrintRequestDto printRequestDto, Profile customer){

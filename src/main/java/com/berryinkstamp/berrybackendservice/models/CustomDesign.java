@@ -36,14 +36,18 @@ public class CustomDesign extends AbstractAuditingEntity<CustomDesign> implement
 
     private String imageUrlFront;
 
-    @OneToMany(mappedBy = "design",fetch = FetchType.EAGER)
+    @OneToMany
     private Set<MockImages>mocks;
 
-    @Column(length = 1000)
-    private String reviews; //todo should be a model
+    @OneToMany
+    private Set<Review> reviews; //todo should be a model
 
     @Enumerated(EnumType.STRING)
     private CustomDesignStatus customDesignStatus = CustomDesignStatus.UNDER_REVIEW;
+
+    private Long orderId;
+
+    private Boolean isCompleted = false;
 
 
 

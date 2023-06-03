@@ -1,12 +1,17 @@
 package com.berryinkstamp.berrybackendservice.controllers;
 
 import com.berryinkstamp.berrybackendservice.annotations.WrapApiResponse;
+import com.berryinkstamp.berrybackendservice.dtos.request.NewDesignRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.OrderDto;
 import com.berryinkstamp.berrybackendservice.dtos.request.OrderRequestCreation;
 import com.berryinkstamp.berrybackendservice.dtos.request.PrintRequestDto;
+import com.berryinkstamp.berrybackendservice.enums.OrderStatus;
+import com.berryinkstamp.berrybackendservice.enums.ProfileType;
+import com.berryinkstamp.berrybackendservice.models.CustomDesign;
 import com.berryinkstamp.berrybackendservice.models.Order;
 import com.berryinkstamp.berrybackendservice.models.OrderRequest;
 import com.berryinkstamp.berrybackendservice.models.PrintRequest;
+import com.berryinkstamp.berrybackendservice.services.CustomDesignService;
 import com.berryinkstamp.berrybackendservice.services.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -27,6 +32,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class OrderController {
     private OrderService orderService;
+    private CustomDesignService customDesignService;
 
     @Operation(summary = "create a new order for designer or printer")
     @PostMapping()
@@ -38,8 +44,8 @@ public class OrderController {
     @Operation(summary = "fetch all orders present")
     @GetMapping()
     @PreAuthorize("hasRole('ROLE_ADMIN')") //todo query by status
-    public Page<Order> fetchAllOrders(Pageable pageable){
-        return orderService.fetchAllOrders(pageable);
+    public Page<Order> fetchAllOrders(@RequestParam(required = false) OrderStatus orderStatus, Pageable pageable){
+        return orderService.fetchAllOrders(orderStatus, pageable);
     }
 
     @Operation(summary = "Accept or Decline order")
@@ -53,8 +59,8 @@ public class OrderController {
     @Operation(summary = "Fetch all orders for logged In customer profile")
     @GetMapping("/customer")//todo fetch by profile
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public Page<Order> fetchAllOrdersForCustomer(Pageable pageable){
-        return orderService.fetchAllLoggedInCustomerOrders(pageable);
+    public Page<Order> fetchAllOrdersForCustomer(@RequestHeader(value = "profile_type") ProfileType profileType, Pageable pageable){
+        return orderService.fetchAllLoggedInCustomerOrders(profileType, pageable);
     }
 
     @Operation(summary = "Create a order request for type Print")
@@ -64,10 +70,18 @@ public class OrderController {
         return orderService.createNewOrderRequest(printRequestDto);
     }
 
-    //todo fetch by id
+    @Operation(summary = "Fetch order by id")
+    @GetMapping("/{orderId}")
+    @PreAuthorize("hasAnyRole('ROLE_CUSTOMER', 'ROLE_DESIGNER')")
+    public Order fetchOrderById(@PathVariable Long orderId){
+        return orderService.fetchOrderById(orderId);
+    }
 
-    //todo cancel deliver custom design by designer
-    //todo add transaction id to order
-    //todo designer (designer) upload and update and fetch custom design by order id, customer fetch all completed custom design
 
+    @Operation(summary = "create custom designs")
+    @PutMapping("/{orderId}/custom-design")
+    @PreAuthorize("hasRole('ROLE_DESIGNER')")
+    public CustomDesign uploadCustomDesign(@Valid @RequestBody NewDesignRequest newDesignRequest, @PathVariable Long orderId){
+        return customDesignService.uploadCustomDesign(newDesignRequest, orderId);
+    }
 }

@@ -23,6 +23,7 @@ public class Order extends AbstractAuditingEntity<Order> implements Serializable
     private BigDecimal pickupAmount;
     private BigDecimal totalAmount;
     private Boolean paid = false;
+    private String transactionId;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus = OrderStatus.REVIEW;
     @OneToOne(fetch = FetchType.LAZY)

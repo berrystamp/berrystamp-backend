@@ -2,23 +2,22 @@ package com.berryinkstamp.berrybackendservice.services.impl;
 
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
 import com.berryinkstamp.berrybackendservice.dtos.request.CustomDesignRequestDto;
+import com.berryinkstamp.berrybackendservice.dtos.request.MockImagesDto;
+import com.berryinkstamp.berrybackendservice.dtos.request.NewDesignRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.RequestCustomizationDTo;
 import com.berryinkstamp.berrybackendservice.enums.OrderType;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
-import com.berryinkstamp.berrybackendservice.models.CustomDesignRequest;
-import com.berryinkstamp.berrybackendservice.models.Design;
-import com.berryinkstamp.berrybackendservice.models.OrderRequest;
-import com.berryinkstamp.berrybackendservice.models.Profile;
-import com.berryinkstamp.berrybackendservice.repositories.CustomDesignRequestRepository;
-import com.berryinkstamp.berrybackendservice.repositories.DesignRepository;
-import com.berryinkstamp.berrybackendservice.repositories.OrderRequestRepository;
-import com.berryinkstamp.berrybackendservice.repositories.ProfileRepository;
+import com.berryinkstamp.berrybackendservice.models.*;
+import com.berryinkstamp.berrybackendservice.repositories.*;
 import com.berryinkstamp.berrybackendservice.services.CustomDesignService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -28,6 +27,9 @@ public class CustomDesignServiceImpl implements CustomDesignService {
     private ProfileRepository profileRepository;
     private OrderRequestRepository orderRequestRepository;
     private CustomDesignRequestRepository customDesignRequestRepository;
+    private MockImageRepository mockImageRepository;
+    private CustomDesignRepository customDesignRepository;
+    private OrderRepository orderRepository;
 
 
     @Override
@@ -46,6 +48,65 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                 .map(design -> mapFromDesignToCustomDesign(design, dto.getDesignId()))
                 .map(customDesignRequest -> mapFromCustomDesignRequestToOrderRequest(customDesignRequest, customerProfile))
                 .orElseThrow(()-> new NotFoundException("No such design with Id exist"));
+    }
+
+    @Override
+    public CustomDesign uploadCustomDesign(NewDesignRequest designRequest,  Long orderId) {
+        Profile designerProfile = tokenProvider.getCurrentUser().getDesignerProfile();
+        return Optional.ofNullable(designerProfile)
+                .map(profile ->mapNewDesignDtoToEntity(profile, designRequest, orderId))
+                .orElseThrow(() -> new NotFoundException("Profile designer does not exist for this user"));
+    }
+
+    @Override
+    public CustomDesign fetchCustomDesignByOrderId(Long orderId) {
+        return customDesignRepository.findCustomDesignByOrderId(orderId)
+                .orElseThrow(() -> new NotFoundException("No custom design found for such orderId"));
+    }
+
+    @Override
+    public List<CustomDesign> fetchAllCompletedCustomDesign() {
+        Profile profile = tokenProvider.getCurrentUser().getProfile(ProfileType.CUSTOMER);
+        return customDesignRepository.findCustomDesignByCustomerProfileAndIsCompletedIsTrue(profile);
+    }
+
+    private CustomDesign mapNewDesignDtoToEntity(Profile profile, NewDesignRequest designRequest, Long orderId){
+        var customDesign1 = customDesignRepository.findCustomDesignByOrderId(orderId);
+        if(customDesign1.isEmpty()) {
+            var customDesign = new CustomDesign();
+            Set<MockImages> mockImages = designRequest.getMocks()
+                    .stream()
+                    .map(mockImagesDto -> mapMockImagesDtoToEntity(mockImagesDto))
+                    .collect(Collectors.toSet());
+            customDesign.setMocks(mockImages);
+            customDesign.setOrderId(orderId);
+            customDesign.setDesignerProfile(profile);
+            customDesign.setImageUrlFront(designRequest.getFrontImageUrl());
+            customDesign.setImageUrlBack(designRequest.getBackImageUrl());
+
+            return customDesignRepository.save(customDesign);
+        }else{
+            Set<MockImages> mockImagesSet = customDesign1.get().getMocks();
+            mockImageRepository.deleteAll(mockImagesSet);
+            Set<MockImages> mockImages = designRequest.getMocks()
+                    .stream()
+                    .map(mockImagesDto -> mapMockImagesDtoToEntity(mockImagesDto))
+                    .collect(Collectors.toSet());
+            customDesign1.get().setMocks(mockImages);
+            customDesign1.get().setOrderId(orderId);
+            customDesign1.get().setDesignerProfile(profile);
+            customDesign1.get().setImageUrlFront(designRequest.getFrontImageUrl());
+            customDesign1.get().setImageUrlBack(designRequest.getBackImageUrl());
+            return customDesignRepository.save(customDesign1.get());
+        }
+    }
+
+    private MockImages mapMockImagesDtoToEntity(MockImagesDto mockImagesDto){
+        var mockImage = new MockImages();
+        mockImage.setAvailableQty(mockImagesDto.getAvailableQty());
+        mockImage.setImageUrl(mockImagesDto.getImageUrl());
+        mockImage.setName(mockImage.getName());
+        return mockImageRepository.save(mockImage);
     }
 
     private CustomDesignRequest mapCustomDesignDtoToEntity(CustomDesignRequestDto customDesignRequest){
