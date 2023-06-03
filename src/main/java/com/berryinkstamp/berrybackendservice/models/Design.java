@@ -1,5 +1,7 @@
 package com.berryinkstamp.berrybackendservice.models;
 
+import com.berryinkstamp.berrybackendservice.enums.CustomDesignStatus;
+import com.berryinkstamp.berrybackendservice.enums.DesignStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -57,10 +59,22 @@ public class Design extends AbstractAuditingEntity<Design> implements Serializab
     @Column(name = "enabled", columnDefinition="BOOLEAN DEFAULT false")
     private boolean deleted;
 
+
     //todo add field boolean approved with false. and status : enum awaiting approval, approved declined
+    private boolean approved = false;
+
+    @Enumerated(EnumType.STRING)
+    private DesignStatus status;
     @JsonProperty("tags")
     public List<String>tags() { return tag == null? null : List.of(tag.split(","));}
 
     @JsonProperty("categories")
     public List<String>categories() { return category == null? null : List.of(category.split(","));}
+
+    public void accept(){
+        this.status = DesignStatus.APPROVED;
+    }
+    public void decline(){
+        this.status =  DesignStatus.DECLINED;
+    }
 }

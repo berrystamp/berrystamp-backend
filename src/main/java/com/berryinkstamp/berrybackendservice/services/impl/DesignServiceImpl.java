@@ -5,6 +5,7 @@ import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
 import com.berryinkstamp.berrybackendservice.dtos.request.MockImagesDto;
 import com.berryinkstamp.berrybackendservice.dtos.request.NewDesignRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.UpdateDesignRequest;
+import com.berryinkstamp.berrybackendservice.enums.DesignStatus;
 import com.berryinkstamp.berrybackendservice.exceptions.BadRequestException;
 import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
 import com.berryinkstamp.berrybackendservice.models.Design;
@@ -178,6 +179,40 @@ public class DesignServiceImpl implements DesignService {
                         category,
                         pageable
                 );
+    }
+
+    @Override
+    public void acceptDesign(Long designId) {
+      Optional<Design> design = designRepository.findById(designId);
+      if (design.isPresent()){
+        Design design1 = design.get();
+        design1.accept();
+        designRepository.save(design1);
+      }else {
+        throw new NotFoundException("Design not found with this ID: " + designId);
+        }
+    }
+
+    @Override
+    public void declineDesign(Long designId) {
+       Optional<Design> design = designRepository.findById(designId);
+       if (design.isPresent()){
+           Design design1 = design.get();
+           design1.decline();
+           designRepository.save(design1);
+       }else {
+           throw new NotFoundException("Design not found with this ID: " + designId);
+       }
+    }
+
+    @Override
+    public List<Design> fetchAllDesign() {
+        return designRepository.findAll();
+    }
+
+    @Override
+    public List<Design> fetchDesignByDesignStatus(DesignStatus designStatus) {
+        return designRepository.findByDesignStatus(designStatus);
     }
 
     private Boolean designNameExistForUser(String designName, Long designerProfileId){

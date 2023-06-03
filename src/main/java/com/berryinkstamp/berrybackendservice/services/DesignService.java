@@ -3,6 +3,7 @@ package com.berryinkstamp.berrybackendservice.services;
 import com.berryinkstamp.berrybackendservice.dtos.request.MockImagesDto;
 import com.berryinkstamp.berrybackendservice.dtos.request.NewDesignRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.UpdateDesignRequest;
+import com.berryinkstamp.berrybackendservice.enums.DesignStatus;
 import com.berryinkstamp.berrybackendservice.models.Design;
 import com.berryinkstamp.berrybackendservice.models.MockImages;
 import org.springframework.data.domain.Page;
@@ -25,4 +26,9 @@ public interface DesignService {
     Page<Design> fetchAllDesignsForDesigner(Pageable pageable);
     Design fetchDesignBySlug(String slug);
     Page<Design> fetchAllDesign(Long collectionId, Long designerId, String tag, String category, Pageable pageable);
+    void acceptDesign(Long designId);
+    void declineDesign(Long designId);
+
+    List<Design> fetchAllDesign();
+    List<Design> fetchDesignByDesignStatus(DesignStatus designStatus);
 }

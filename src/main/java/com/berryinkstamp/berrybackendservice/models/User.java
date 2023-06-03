@@ -84,6 +84,7 @@ public class User extends AbstractAuditingEntity<User> implements Serializable {
    private Profile designerProfile;
 
 
+
    @JsonProperty(value = "roles")
    public List<RoleName> getRolesOutput() {
       return roles.stream().map(Role::getName).collect(Collectors.toList());
