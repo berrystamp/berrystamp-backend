@@ -1,5 +1,6 @@
 package com.berryinkstamp.berrybackendservice.repositories;
 
+import com.berryinkstamp.berrybackendservice.enums.DesignStatus;
 import com.berryinkstamp.berrybackendservice.models.Design;
 import com.berryinkstamp.berrybackendservice.models.Profile;
 import org.springframework.data.domain.Page;
@@ -30,9 +31,7 @@ public interface DesignRepository extends JpaRepository<Design, Long> {
 
 
     boolean existsByNameAndDesignerAndIdNot(String name, Profile designer, Long id);
-
-
-
+    List<Design> findByDesignStatus(DesignStatus designStatus);
 
 
 }
