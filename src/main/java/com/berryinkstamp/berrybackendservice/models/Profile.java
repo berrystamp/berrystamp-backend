@@ -1,9 +1,11 @@
 package com.berryinkstamp.berrybackendservice.models;
 
+import com.berryinkstamp.berrybackendservice.enums.ProfileStatus;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -20,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -38,6 +41,9 @@ public class Profile extends AbstractAuditingEntity<Profile> implements Serializ
     @Enumerated(EnumType.STRING)
     private ProfileType profileType;
 
+    @Enumerated(EnumType.STRING)
+    private ProfileStatus status = ProfileStatus.ACTIVE;
+
     private String name;
 
     private String profilePic;
@@ -45,6 +51,16 @@ public class Profile extends AbstractAuditingEntity<Profile> implements Serializ
     private String coverPic;
 
     private String bio;
+
+    @Column(length = 1500)
+    private String reasonForProbation;
+
+    @Column(length = 1500)
+    private String reasonForTermination;
+
+    private LocalDateTime probationDate;
+
+    private LocalDateTime terminationDate;
 
     @JsonIgnore
     private String gallery;

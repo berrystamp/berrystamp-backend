@@ -92,7 +92,7 @@ public class CollectionServiceImpl implements CollectionService {
 
         var designs = collectionRequest.getDesigns()
                 .stream()
-                .map(id -> designRepository.findByIdAndDesignerAndDeletedFalse(id, tokenProvider.getCurrentUser().getPrinterProfile())
+                .map(id -> designRepository.findByIdAndDesignerAndDeletedFalse(id, tokenProvider.getCurrentUser().getDesignerProfile())
                         .orElseThrow(() -> new NotFoundException("Design with id not found")))
                 .toList();
 

@@ -1,5 +1,6 @@
 package com.berryinkstamp.berrybackendservice.services.impl;
 
+import com.berryinkstamp.berrybackendservice.models.Admin;
 import com.berryinkstamp.berrybackendservice.models.OTPMapper;
 import com.berryinkstamp.berrybackendservice.models.User;
 import com.berryinkstamp.berrybackendservice.repositories.OTPMapperRepository;
@@ -37,32 +38,44 @@ public class OTPServiceImpl implements OTPService {
         }catch (Exception e){
             e.printStackTrace();
         }
-        saveOTP(user, otp);
+        saveOTP(user.getEmail(), otp);
     }
 
     @Override
-    public void sendForgetPasswordOTP(User user) {
+    public void sendAdminResetOTP(Admin user) {
         String otp = RandomStringUtils.randomNumeric(6);
-        log.info("forget password otp {} for user {}", otp, user.getEmail());
+        log.info("registration otp {} for user {}", otp, user.getEmail());
         try {
-            emailService.sendForgetPasswordOTP(otp, user);
+            emailService.sendAdminResetOTP(otp, user);
         }catch (Exception e){
             e.printStackTrace();
         }
-        saveOTP(user, otp);
+        saveOTP(user.getEmail(), otp);
+    }
+
+    @Override
+    public void sendForgetPasswordOTP(String email, String name) {
+        String otp = RandomStringUtils.randomNumeric(6);
+        log.info("forget password otp {} for user {}", otp, email);
+        try {
+            emailService.sendForgetPasswordOTP(otp, email, name);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        saveOTP(email, otp);
     }
 
 
 
     @Override
-    public boolean verifyOTP(User user, String code) {
-        Optional<OTPMapper> otpMapper = otpMapperRepository.findFirstByUserId(user.getId());
+    public boolean verifyOTP(String email, String code) {
+        Optional<OTPMapper> otpMapper = otpMapperRepository.findFirstByEmail(email);
         return otpMapper.filter(mapper -> Objects.equals(mapper.getOtp(), code)).isPresent();
     }
 
-    private void saveOTP(User user, String otp) {
-        Optional<OTPMapper> otpMapper = otpMapperRepository.findFirstByUserId(user.getId());
-        OTPMapper mapper = new OTPMapper(otp, user.getId());
+    private void saveOTP(String email, String otp) {
+        Optional<OTPMapper> otpMapper = otpMapperRepository.findFirstByEmail(email);
+        OTPMapper mapper = new OTPMapper(otp, email);
         if (otpMapper.isPresent()) {
             mapper = otpMapper.get();
             mapper.setOtp(otp);

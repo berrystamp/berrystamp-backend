@@ -24,7 +24,7 @@ public class PublicProfileController {
     private final ProfileService profileService;
 
     @Operation(summary = "Fetch all profile filter by profile type", description = "Fetch design by Id")
-    @PostMapping
+    @GetMapping
     public Page<Profile> getAllProfiles(@RequestParam ProfileType profile, Pageable pageable) {
         return profileService.getAllProfiles(profile, pageable);
     }

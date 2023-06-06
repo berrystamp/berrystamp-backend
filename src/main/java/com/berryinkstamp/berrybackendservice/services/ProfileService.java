@@ -1,5 +1,6 @@
 package com.berryinkstamp.berrybackendservice.services;
 
+import com.berryinkstamp.berrybackendservice.dtos.request.ReasonRequest;
 import com.berryinkstamp.berrybackendservice.dtos.request.UpdateProfileRequest;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.models.Profile;
@@ -13,4 +14,12 @@ public interface ProfileService {
     Profile getUserProfile(Long userId);
 
     Profile updateProfile(UpdateProfileRequest request, ProfileType profileType);
+
+    Page<Profile> adminGetAllProfiles(ProfileType profile, String field, Pageable pageable);
+
+    Profile suspendProfile(Long profileId, ReasonRequest request);
+
+    Profile terminateProfile(Long profileId, ReasonRequest request);
+
+    Profile activateProfile(Long profileId);
 }

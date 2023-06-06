@@ -1,18 +1,17 @@
 package com.berryinkstamp.berrybackendservice.models;
 
-import com.berryinkstamp.berrybackendservice.enums.CustomDesignStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
 
 @Entity
 @Getter
@@ -29,7 +28,7 @@ public class PrintRequest extends AbstractAuditingEntity<PrintRequest> implement
     private String mockItemUrl;
     private String mockName;
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn
+    @JoinColumn //todo remove this because it is already represented in orderRequest (designerOrPrinterProfile) richard
     private Profile printerProfile;
     private String sourceOfItem;
     private Long quantity;

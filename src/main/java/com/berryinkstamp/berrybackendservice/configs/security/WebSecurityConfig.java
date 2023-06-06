@@ -1,5 +1,6 @@
 package com.berryinkstamp.berrybackendservice.configs.security;
 
+import com.berryinkstamp.berrybackendservice.configs.security.jwt.AdminModelDetailsService;
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.JWTFilter;
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.JwtAccessDeniedHandler;
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.JwtAuthenticationEntryPoint;
@@ -26,6 +27,7 @@ public class WebSecurityConfig {
 
     private final CustomAuthenticationProvider customAuthenticationProvider;
     private final UserModelDetailsService userModelDetailsService;
+    private final AdminModelDetailsService adminModelDetailsService;
     private final JwtAuthenticationEntryPoint authenticationErrorHandler;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final PasswordEncoder passwordEncoder;
@@ -83,7 +85,7 @@ public class WebSecurityConfig {
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider);
-        authenticationManagerBuilder.authenticationProvider(new DBAuthenticationProvider(userModelDetailsService));
+        authenticationManagerBuilder.authenticationProvider(new DBAuthenticationProvider(userModelDetailsService, adminModelDetailsService));
         authenticationManagerBuilder.userDetailsService(userModelDetailsService).passwordEncoder(passwordEncoder);
         return authenticationManagerBuilder.build();
     }

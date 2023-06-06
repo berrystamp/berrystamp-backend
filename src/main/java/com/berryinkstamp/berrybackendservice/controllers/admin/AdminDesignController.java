@@ -4,36 +4,30 @@ import com.berryinkstamp.berrybackendservice.enums.DesignStatus;
 import com.berryinkstamp.berrybackendservice.models.Design;
 import com.berryinkstamp.berrybackendservice.services.DesignService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/v1/admin")
+@RequestMapping("/api/v1/admin/designs")
 public class AdminDesignController {
     private DesignService designService;
 
-    @PutMapping("/design/{id}/accept")
-    public ResponseEntity<?> acceptDesign(@PathVariable("id") Long designId){
-        designService.acceptDesign(designId);
-        return new ResponseEntity<>("Design accepted successfully", HttpStatus.ACCEPTED);
+    @PatchMapping("/{id}/review")
+    public ResponseEntity<Design> acceptDesign(@PathVariable("id") Long designId, @RequestParam boolean approved){
+        return new ResponseEntity<>(designService.acceptDesign(designId, approved), HttpStatus.OK);
     }
-    @DeleteMapping("/design/{id}/decline")
-    public ResponseEntity<?> declineDesign(@PathVariable("id") Long designId){
-        designService.declineDesign(designId);
-        return new ResponseEntity<>("Design decline successfully",HttpStatus.OK);
-    }
-    @GetMapping("/designs")
-    public ResponseEntity<List<Design>> fetchDesign(@RequestParam(value = "design_status",required = false)DesignStatus designStatus){
-      List<Design> designs;
-      if (designStatus != null){
-          designs = designService.fetchDesignByDesignStatus(designStatus);
-      }else{
-          designs = designService.fetchAllDesign();
-      }
-      return new ResponseEntity<>(designs,HttpStatus.OK);
+
+    @GetMapping
+    public ResponseEntity<Page<Design>> fetchDesign(@RequestParam(required = false) DesignStatus status, Pageable pageable){
+      return new ResponseEntity<>(designService.fetchAllDesign(status, pageable),HttpStatus.OK);
     }
 }

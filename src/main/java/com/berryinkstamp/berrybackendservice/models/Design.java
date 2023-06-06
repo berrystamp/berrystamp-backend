@@ -56,12 +56,12 @@ public class Design extends AbstractAuditingEntity<Design> implements Serializab
     private String category;
 
     @JsonIgnore
-    @Column(name = "enabled", columnDefinition="BOOLEAN DEFAULT false")
+    @Column(name = "deleted", columnDefinition="BOOLEAN DEFAULT false")
     private boolean deleted;
 
 
-    //todo add field boolean approved with false. and status : enum awaiting approval, approved declined
-    private boolean approved = false;
+    @Column(name = "approved", columnDefinition="BOOLEAN DEFAULT false")
+    private boolean approved;
 
     @Enumerated(EnumType.STRING)
     private DesignStatus status;
@@ -71,10 +71,4 @@ public class Design extends AbstractAuditingEntity<Design> implements Serializab
     @JsonProperty("categories")
     public List<String>categories() { return category == null? null : List.of(category.split(","));}
 
-    public void accept(){
-        this.status = DesignStatus.APPROVED;
-    }
-    public void decline(){
-        this.status =  DesignStatus.DECLINED;
-    }
 }

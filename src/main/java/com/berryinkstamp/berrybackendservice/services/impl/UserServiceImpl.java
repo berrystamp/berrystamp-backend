@@ -51,6 +51,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -109,7 +110,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponse activateAccount(String otp, BaseRequest baseRequest) {
         User user = userRepository.findFirstByEmail(baseRequest.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
-        boolean success = otpService.verifyOTP(user, otp);
+        boolean success = otpService.verifyOTP(user.getEmail(), otp);
         if (!success) {
             throw new BadRequestException("Invalid token");
         }
@@ -130,14 +131,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public Object resetPassword(BaseRequest baseRequest) {
         User user = userRepository.findFirstByEmail(baseRequest.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
-        otpService.sendForgetPasswordOTP(user);
+        otpService.sendForgetPasswordOTP(user.getEmail(), user.getName());
         return null;
     }
 
     @Override
     public Object completeResetPassword(ResetPasswordRequest request) {
         User user = userRepository.findFirstByEmail(request.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
-        boolean success = otpService.verifyOTP(user, request.getOtp());
+        boolean success = otpService.verifyOTP(user.getEmail(), request.getOtp());
         if (!success) {
             throw new BadRequestException("Invalid otp");
         }
@@ -148,17 +149,17 @@ public class UserServiceImpl implements UserService {
 
         //todo push to audit
 
-        return null;
+        return Map.of();
     }
 
     @Override
     public Object validateCode(String otp, BaseRequest request) {
         User user = userRepository.findFirstByEmail(request.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
-        boolean success = otpService.verifyOTP(user, otp);
+        boolean success = otpService.verifyOTP(user.getEmail(), otp);
         if (!success) {
             throw new BadRequestException("Invalid otp");
         }
-        return null;
+        return Map.of();
     }
 
     @Override
@@ -275,7 +276,7 @@ public class UserServiceImpl implements UserService {
 
         createProfile(request.getName(), request.getProfile(), user);
 
-        return user;
+        return userRepository.save(user);
     }
 
     @Override
@@ -447,10 +448,13 @@ public class UserServiceImpl implements UserService {
 
         if (profileType == ProfileType.DESIGNER) {
             user.setDesignerProfile(profile);
+            Role designerAuthority = authorityRepository.findByName(RoleName.ROLE_DESIGNER).orElseThrow(() ->new BadRequestException("Unable to complete Registration at the moment"));
+            user.getRoles().add(designerAuthority);
             return;
         }
-
+        Role printerAuthority = authorityRepository.findByName(RoleName.ROLE_PRINTER).orElseThrow(() ->new BadRequestException("Unable to complete Registration at the moment"));
         user.setPrinterProfile(profile);
+        user.getRoles().add(printerAuthority);
     }
 
     private void createCustomerProfile(String name,  User user) {

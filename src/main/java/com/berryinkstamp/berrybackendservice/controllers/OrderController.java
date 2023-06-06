@@ -37,15 +37,8 @@ public class OrderController {
     @Operation(summary = "create a new order for designer or printer")
     @PostMapping()
     @PreAuthorize("hasAnyRole('ROLE_DESIGNER', 'ROLE_PRINTER')")
-    public Order createNewOrder(@Valid OrderDto orderDto){
+    public Order createNewOrder(@Valid @RequestBody OrderDto orderDto){
      return orderService.createNewOrder(orderDto);
-    }
-
-    @Operation(summary = "fetch all orders present")
-    @GetMapping()
-    @PreAuthorize("hasRole('ROLE_ADMIN')") //todo query by status
-    public Page<Order> fetchAllOrders(@RequestParam(required = false) OrderStatus orderStatus, Pageable pageable){
-        return orderService.fetchAllOrders(orderStatus, pageable);
     }
 
     @Operation(summary = "Accept or Decline order")
@@ -57,7 +50,7 @@ public class OrderController {
     }
 
     @Operation(summary = "Fetch all orders for logged In customer profile")
-    @GetMapping("/customer")//todo fetch by profile
+    @GetMapping
     @PreAuthorize("hasRole('ROLE_CUSTOMER')")
     public Page<Order> fetchAllOrdersForCustomer(@RequestHeader(value = "profile_type") ProfileType profileType, Pageable pageable){
         return orderService.fetchAllLoggedInCustomerOrders(profileType, pageable);

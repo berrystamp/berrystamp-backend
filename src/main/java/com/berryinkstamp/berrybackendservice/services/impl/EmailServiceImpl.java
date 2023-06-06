@@ -1,6 +1,7 @@
 package com.berryinkstamp.berrybackendservice.services.impl;
 
 import com.berryinkstamp.berrybackendservice.dtos.request.EmailRequest;
+import com.berryinkstamp.berrybackendservice.models.Admin;
 import com.berryinkstamp.berrybackendservice.models.User;
 import com.berryinkstamp.berrybackendservice.services.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -44,13 +45,26 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendForgetPasswordOTP(String otp, User user) {
+    public void sendAdminResetOTP(String otp, Admin user) {
         EmailRequest emailRequest = new EmailRequest();
-        emailRequest.setBody(String.format("Hello %s, \nKindly use this %s to reset your password.", user.getName(), otp));
+        emailRequest.setBody(String.format("Hello %s, \nKindly use this %s to activate your account.", user.getName(), otp));
         emailRequest.setRecipients(user.getEmail());
+        emailRequest.setSubject("Migra Account Activation");
+        emailRequest.setTemplateId(registrationOTPTemplateId);
+        emailRequest.setPlaceholders(Map.of("OtpCode", otp, "name", user.getName()));
+        log.info("about to send email");
+        emailServiceFactory.resolve(emailProvider).send(emailRequest);
+        log.info("sent email");
+    }
+
+    @Override
+    public void sendForgetPasswordOTP(String otp, String email, String name) {
+        EmailRequest emailRequest = new EmailRequest();
+        emailRequest.setBody(String.format("Hello %s, \nKindly use this %s to reset your password.",name, otp));
+        emailRequest.setRecipients(email);
         emailRequest.setSubject("Password Reset");
         emailRequest.setTemplateId(forgetPasswordOTPTemplateId);
-        emailRequest.setPlaceholders(Map.of("resetOtpCode", otp, "name", user.getName()));
+        emailRequest.setPlaceholders(Map.of("resetOtpCode", otp, "name", name));
         log.info("about to send email");
         emailServiceFactory.resolve(emailProvider).send(emailRequest);
         log.info("sent email");

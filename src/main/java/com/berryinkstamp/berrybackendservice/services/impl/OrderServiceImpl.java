@@ -32,6 +32,7 @@ public class OrderServiceImpl implements OrderService {
     private OrderRequestRepository orderRequestRepository;
     @Override
     public Order createNewOrder(OrderDto orderDto) {
+        //todo validate amount is not negative richard
         var orderRequest = orderRequestRepository.findById(orderDto.getOrderRequestId())
                 .orElseThrow(() -> new NotFoundException("No such order request Id found"));
         return Optional.ofNullable(tokenProvider.getCurrentUser())
@@ -45,18 +46,25 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderRequest(orderRequest);
         order.setPickupAmount(orderDto.getPickUpAmount());
         Profile profile = orderRequest.getOrderType() == OrderType.PRINT? user.getProfile(ProfileType.PRINTER): user.getProfile(ProfileType.DESIGNER);
+        Profile customerProfile = orderRequest.getCustomerProfile();
        order.setDesignerOrPrinterProfile(profile);
+       order.setCustomerProfile(customerProfile);
         //TODO: push to audit
       return orderRepository.save(order);
     }
 
     @Override
     public Page<Order> fetchAllOrders(OrderStatus orderStatus, Pageable pageable) {
+        if (orderStatus == null) {
+            return orderRepository.findAll(pageable);
+        }
         return orderRepository.findAllByOrderStatus(orderStatus, pageable);
     }
 
     @Override
     public void orderDecision(Long orderId, Boolean decision) {
+        //todo ensure order has been paid for.
+        //todo implement transactions with paystack
         var profile = tokenProvider.getCurrentUser().getProfile(ProfileType.CUSTOMER);
         orderRepository.findOrderByCustomerProfileAndId(profile, orderId)
                 .map(order -> {
@@ -80,6 +88,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderRequest createNewOrderRequest(PrintRequestDto printRequestDto) {
         Profile profile = tokenProvider.getCurrentUser().getProfile(ProfileType.CUSTOMER);
+        //todo validate the printerId is really a printer richard
+        //todo validate the designId and mockId richard
+        //todo validate that the mock really belongs to the design richard
         return designRepository.findById(printRequestDto.getDesignId())
                 .map(design -> mapToPrintRequestEntity(design, printRequestDto))
                 .map(printRequest -> mapPrintRequestToOrderRequestEntity(printRequest,printRequestDto,profile))

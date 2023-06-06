@@ -1,6 +1,7 @@
 package com.berryinkstamp.berrybackendservice.models;
 
 import com.berryinkstamp.berrybackendservice.enums.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,9 +10,12 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.name;
+
 @Entity
 @Getter
 @Setter
+@Table(name="orders")
 public class Order extends AbstractAuditingEntity<Order> implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,12 +30,18 @@ public class Order extends AbstractAuditingEntity<Order> implements Serializable
     private String transactionId;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus = OrderStatus.REVIEW;
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn
+
+    //todo move this to order request richard
+    //todo create order and test richard,
+    @JsonIgnore
+    @OneToOne
     private Profile designerOrPrinterProfile;
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn
+
+    //todo remove this it is already in order request
+    @JsonIgnore
+    @OneToOne
     private Profile customerProfile;
+
     @OneToOne
     private OrderRequest orderRequest;
 

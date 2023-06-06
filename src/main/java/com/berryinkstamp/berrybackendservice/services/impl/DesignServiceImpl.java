@@ -14,31 +14,45 @@ import com.berryinkstamp.berrybackendservice.models.Profile;
 import com.berryinkstamp.berrybackendservice.models.User;
 import com.berryinkstamp.berrybackendservice.repositories.DesignRepository;
 import com.berryinkstamp.berrybackendservice.repositories.MockImageRepository;
+import com.berryinkstamp.berrybackendservice.repositories.ProfileRepository;
 import com.berryinkstamp.berrybackendservice.services.DesignService;
 import com.berryinkstamp.berrybackendservice.utils.Utils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class DesignServiceImpl implements DesignService {
     private final DesignRepository designRepository;
+    private final ProfileRepository profileRepository;
 
     private final MockImageRepository mockImageRepository;
     private final TokenProvider tokenProvider;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public DesignServiceImpl(DesignRepository designRepository,
-                             MockImageRepository mockImageRepository,
+                             ProfileRepository profileRepository, MockImageRepository mockImageRepository,
                              TokenProvider tokenProvider) {
         this.designRepository = designRepository;
+        this.profileRepository = profileRepository;
         this.mockImageRepository = mockImageRepository;
         this.tokenProvider = tokenProvider;
     }
@@ -48,6 +62,10 @@ public class DesignServiceImpl implements DesignService {
 
         if (designNameExistForUser(designRequest.getName(), tokenProvider.getCurrentUser().getDesignerProfile().getId())) {
             throw new BadRequestException("Name already exist for this design!");
+        }
+
+        if (designRequest.getAmount().doubleValue() < 0) {
+            throw new BadRequestException("Invalid amount");
         }
 
         Design design = new Design();
@@ -165,54 +183,82 @@ public class DesignServiceImpl implements DesignService {
     }
 
     @Override
-    public Page<Design> fetchAllDesign(Long collectionId, Long designerId, String tag, String category, Pageable pageable) {
-        if(collectionId == null && designerId == null && tag == null && category == null){
+    public Page<Design> fetchAllDesign(Long designerId, String tag, String category, Pageable pageable) {
+        if(designerId == null && tag == null && category == null){
             return designRepository.findByDeleted(false, pageable);
         }
 
-        //todo should fetch only designs that are approved
-        return designRepository
-                .findByCollectionIdOrDesignerIdOrTagContainingIgnoreCaseOrCategoryContainingIgnoreCaseAndDeletedFalse(
-                        collectionId,
-                        designerId,
-                        tag,
-                        category,
-                        pageable
-                );
-    }
+        Profile designer = null;
 
-    @Override
-    public void acceptDesign(Long designId) {
-      Optional<Design> design = designRepository.findById(designId);
-      if (design.isPresent()){
-        Design design1 = design.get();
-        design1.accept();
-        designRepository.save(design1);
-      }else {
-        throw new NotFoundException("Design not found with this ID: " + designId);
+        if (designerId != null) {
+            designer = profileRepository.findById(designerId).orElse(null);
         }
+        CriteriaBuilder qb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Design> cq = qb.createQuery(Design.class);
+
+        Root<Design> root = cq.from(Design.class);
+
+        List<Predicate> predicates = getPredicates(designer, tag, category, qb, root, cq);
+
+        cq.select(root).where(predicates.toArray(new Predicate[]{}));
+
+        List<Design> res = entityManager.createQuery(cq).getResultList();
+
+
+        return new PageImpl<>(res, pageable, res.size());
+
     }
 
+    private List<Predicate> getPredicates(Profile designer, String tag, String category, CriteriaBuilder qb, Root<Design> root, CriteriaQuery<Design> cq) {
+        List<Predicate> predicates = new ArrayList<>();
+
+        predicates.add(qb.isFalse(root.get("deleted")));
+
+        predicates.add(qb.isTrue(root.get("approved")));
+
+        if (Objects.nonNull(designer)) {
+            predicates.add(qb.equal(root.get("designer"), designer));
+        }
+
+        if (Objects.nonNull(tag)) {
+            predicates.add(qb.like(root.get("tag"), "%" + tag + "%"));
+        }
+
+        if (Objects.nonNull(category)) {
+            predicates.add(qb.like(root.get("category"), "%" + category + "%"));
+        }
+
+
+        return predicates;
+    }
+
+
     @Override
-    public void declineDesign(Long designId) {
-       Optional<Design> design = designRepository.findById(designId);
-       if (design.isPresent()){
-           Design design1 = design.get();
-           design1.decline();
-           designRepository.save(design1);
-       }else {
+    public Design acceptDesign(Long designId, boolean approved) {
+       Optional<Design> optionalDesign = designRepository.findById(designId);
+       if (optionalDesign.isEmpty()){
            throw new NotFoundException("Design not found with this ID: " + designId);
        }
+
+       Design design = optionalDesign.get();
+       design.setStatus(approved ? DesignStatus.APPROVED : DesignStatus.DECLINED);
+       design.setApproved(approved);
+       design = designRepository.save(design);
+
+       //todo push to audit
+        //todo email and push notification
+       return design;
+
     }
 
-    @Override
-    public List<Design> fetchAllDesign() {
-        return designRepository.findAll();
-    }
 
     @Override
-    public List<Design> fetchDesignByDesignStatus(DesignStatus designStatus) {
-        return designRepository.findByDesignStatus(designStatus);
+    public Page<Design> fetchAllDesign(DesignStatus designStatus, Pageable pageable) {
+        if (designStatus == null) {
+            return designRepository.findAll(pageable);
+        }
+        return designRepository.findByStatus(designStatus, pageable);
     }
 
     private Boolean designNameExistForUser(String designName, Long designerProfileId){

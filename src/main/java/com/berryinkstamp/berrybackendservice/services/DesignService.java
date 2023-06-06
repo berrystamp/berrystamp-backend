@@ -25,10 +25,7 @@ public interface DesignService {
     Design fetchDesignById(Long designId);
     Page<Design> fetchAllDesignsForDesigner(Pageable pageable);
     Design fetchDesignBySlug(String slug);
-    Page<Design> fetchAllDesign(Long collectionId, Long designerId, String tag, String category, Pageable pageable);
-    void acceptDesign(Long designId);
-    void declineDesign(Long designId);
-
-    List<Design> fetchAllDesign();
-    List<Design> fetchDesignByDesignStatus(DesignStatus designStatus);
+    Page<Design> fetchAllDesign(Long designerId, String tag, String category, Pageable pageable);
+    Design acceptDesign(Long designId, boolean approved);
+    Page<Design> fetchAllDesign(DesignStatus status, Pageable pageable);
 }

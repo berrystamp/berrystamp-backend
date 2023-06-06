@@ -11,12 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/public/designs")
 public class PublicDesignController {
-    private final DesignService designService;
-    private final CollectionService collectionService;
 
-    public PublicDesignController(DesignService designService, CollectionService collectionService) {
+    private final DesignService designService;
+
+    public PublicDesignController(DesignService designService) {
         this.designService = designService;
-        this.collectionService = collectionService;
     }
 
     @Operation(summary = "Fetch design by Id", description = "Fetch design by Id")
@@ -33,12 +32,11 @@ public class PublicDesignController {
 
     @Operation(summary = "Fetch all designs", description = "Fetch all designs")
     @GetMapping()
-    private Page<Design> fetchAllDesigns(@RequestParam(value = "collection", required = false) Long collectionId,
-                                         @RequestParam(value = "designer", required = false) Long designerId,
+    private Page<Design> fetchAllDesigns(@RequestParam(value = "designer", required = false) Long designerId,
                                          @RequestParam(value = "tag", required = false) String tag,
                                          @RequestParam(value = "category", required = false) String category,
                                          Pageable pageable){
-        return designService.fetchAllDesign(collectionId,designerId, tag,category,pageable);
+        return designService.fetchAllDesign(designerId, tag,category,pageable);
     }
 
 }

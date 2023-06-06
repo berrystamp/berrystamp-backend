@@ -22,7 +22,7 @@ public class NewDesignRequest {
     private String backImageUrl;
     private String description;
     private Long printerId;
-    private BigDecimal amount;
+    private BigDecimal amount = BigDecimal.ZERO;
     private List<@Valid MockImagesDto> mocks;
     private Set<String> category = new HashSet<>();
     private Set<String> tags = new HashSet<>();

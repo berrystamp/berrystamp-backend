@@ -1,9 +1,12 @@
 package com.berryinkstamp.berrybackendservice.configs.security;
 
+import com.berryinkstamp.berrybackendservice.configs.security.jwt.AdminModelDetailsService;
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.UserModelDetailsService;
 import com.berryinkstamp.berrybackendservice.enums.AuthProvider;
 import com.berryinkstamp.berrybackendservice.exceptions.BadRequestException;
+import com.berryinkstamp.berrybackendservice.models.Admin;
 import com.berryinkstamp.berrybackendservice.models.User;
+import com.berryinkstamp.berrybackendservice.repositories.AdminRepository;
 import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -24,7 +27,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     private final UserModelDetailsService userModelDetailsService;
 
+    private final AdminModelDetailsService adminModelDetailsService;
+
     private final UserRepository userRepository;
+
+    private final AdminRepository adminRepository;
 
 
     @Override
@@ -34,6 +41,10 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         String password = authenticationToken.getPassword() == null ? "" : authenticationToken.getPassword();
         if (authenticationToken.getAuthProvider() == AuthProvider.activation) {
             return userEmailAuthentication(principal);
+        }
+
+        if (authenticationToken.getAuthProvider() == AuthProvider.admin) {
+            return adminEmailAndPasswordAuthentication(principal, password);
         }
 
         if (authenticationToken.getAuthProvider() == AuthProvider.local) {
@@ -57,7 +68,14 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         List<GrantedAuthority> grantedAuthorities = user.getRoles().stream()
                 .map(authority -> new SimpleGrantedAuthority(authority.getName().name()))
                 .collect(Collectors.toList());
-        DBAuthenticationProvider authenticationProvider = new DBAuthenticationProvider(userModelDetailsService);
+        DBAuthenticationProvider authenticationProvider = new DBAuthenticationProvider(userModelDetailsService, adminModelDetailsService);
+        return authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(principal, password, grantedAuthorities));
+    }
+
+    private Authentication adminEmailAndPasswordAuthentication(String principal, String password) {
+        Admin user = adminRepository.findFirstByEmail(principal).orElseThrow(() -> new BadRequestException("Authentication failed"));
+        List<GrantedAuthority> grantedAuthorities = List.of(new SimpleGrantedAuthority(user.getRole().name()));
+        DBAuthenticationProvider authenticationProvider = new DBAuthenticationProvider(userModelDetailsService, adminModelDetailsService);
         return authenticationProvider.authenticate(new UsernamePasswordAuthenticationToken(principal, password, grantedAuthorities));
     }
 

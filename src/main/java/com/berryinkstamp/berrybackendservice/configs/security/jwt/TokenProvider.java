@@ -1,7 +1,9 @@
 package com.berryinkstamp.berrybackendservice.configs.security.jwt;
 
 import com.berryinkstamp.berrybackendservice.exceptions.NotFoundException;
+import com.berryinkstamp.berrybackendservice.models.Admin;
 import com.berryinkstamp.berrybackendservice.models.User;
+import com.berryinkstamp.berrybackendservice.repositories.AdminRepository;
 import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -38,10 +40,33 @@ public class TokenProvider implements InitializingBean {
    private final long tokenValidityInMilliseconds;
    private final long tokenValidityInMillisecondsForRememberMe;
    private final UserRepository userRepository;
+   private final AdminRepository adminRepository;
 
    private String email;
 
    private Key key;
+
+
+   public TokenProvider(
+           @Value("${jwt.base64-secret}") String base64Secret,
+           @Value("${jwt.token-validity-in-seconds}") long tokenValidityInSeconds,
+           @Value("${jwt.token-validity-in-seconds-for-remember-me}") long tokenValidityInSecondsForRememberMe,
+           UserRepository userRepository,
+           AdminRepository adminRepository
+   ) {
+      this.base64Secret = base64Secret;
+      this.tokenValidityInMilliseconds = tokenValidityInSeconds * 1000;
+      this.tokenValidityInMillisecondsForRememberMe = tokenValidityInSecondsForRememberMe * 1000;
+      this.userRepository = userRepository;
+      this.adminRepository = adminRepository;
+   }
+
+
+   @Override
+   public void afterPropertiesSet() {
+      byte[] keyBytes = Decoders.BASE64.decode(base64Secret);
+      this.key = Keys.hmacShaKeyFor(keyBytes);
+   }
 
 
    public void setEmail(String token) {
@@ -56,22 +81,8 @@ public class TokenProvider implements InitializingBean {
       return userRepository.findFirstByEmail(this.email).orElseThrow(() -> new NotFoundException("User not found"));
    }
 
-   public TokenProvider(
-           @Value("${jwt.base64-secret}") String base64Secret,
-           @Value("${jwt.token-validity-in-seconds}") long tokenValidityInSeconds,
-           @Value("${jwt.token-validity-in-seconds-for-remember-me}") long tokenValidityInSecondsForRememberMe,
-           UserRepository userRepository
-   ) {
-      this.base64Secret = base64Secret;
-      this.tokenValidityInMilliseconds = tokenValidityInSeconds * 1000;
-      this.tokenValidityInMillisecondsForRememberMe = tokenValidityInSecondsForRememberMe * 1000;
-      this.userRepository = userRepository;
-   }
-
-   @Override
-   public void afterPropertiesSet() {
-      byte[] keyBytes = Decoders.BASE64.decode(base64Secret);
-      this.key = Keys.hmacShaKeyFor(keyBytes);
+   public Admin getCurrentAdmin() {
+      return adminRepository.findFirstByEmail(this.email).orElseThrow(() -> new NotFoundException("Admin not found"));
    }
 
    public String createToken(Authentication authentication, boolean rememberMe) {

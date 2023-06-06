@@ -1,8 +1,8 @@
 package com.berryinkstamp.berrybackendservice.configs.security.jwt;
 
 import com.berryinkstamp.berrybackendservice.exceptions.UserNotActivatedException;
-import com.berryinkstamp.berrybackendservice.models.User;
-import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
+import com.berryinkstamp.berrybackendservice.models.Admin;
+import com.berryinkstamp.berrybackendservice.repositories.AdminRepository;
 import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,17 +16,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
-@Component("userDetailsService")
-public class UserModelDetailsService implements UserDetailsService {
+@Component("adminDetailsService")
+public class AdminModelDetailsService implements UserDetailsService {
 
-   private final Logger log = LoggerFactory.getLogger(UserModelDetailsService.class);
+   private final Logger log = LoggerFactory.getLogger(AdminModelDetailsService.class);
 
-   private final UserRepository userRepository;
+   private final AdminRepository adminRepository;
 
-   public UserModelDetailsService(UserRepository userRepository) {
-      this.userRepository = userRepository;
+   public AdminModelDetailsService(AdminRepository userRepository) {
+      this.adminRepository = userRepository;
    }
 
    @Override
@@ -35,25 +34,23 @@ public class UserModelDetailsService implements UserDetailsService {
       log.debug("Authenticating user '{}'", login);
 
       if (new EmailValidator().isValid(login, null)) {
-         return userRepository.findFirstByEmail(login)
+         return adminRepository.findFirstByEmail(login)
             .map(user -> createSpringSecurityUser(login, user))
             .orElseThrow(() -> new UsernameNotFoundException("User with email " + login + " was not found in the database"));
       }
 
       String lowercaseLogin = login.toLowerCase(Locale.ENGLISH);
-      return userRepository.findFirstByEmail(lowercaseLogin)
+      return adminRepository.findFirstByEmail(lowercaseLogin)
          .map(user -> createSpringSecurityUser(lowercaseLogin, user))
          .orElseThrow(() -> new UsernameNotFoundException("User " + lowercaseLogin + " was not found in the database"));
 
    }
 
-   private org.springframework.security.core.userdetails.User createSpringSecurityUser(String lowercaseLogin, User user) {
+   private org.springframework.security.core.userdetails.User createSpringSecurityUser(String lowercaseLogin, Admin user) {
       if (!user.isActivated()) {
          throw new UserNotActivatedException("User " + lowercaseLogin + " was not activated");
       }
-      List<GrantedAuthority> grantedAuthorities = user.getRoles().stream()
-         .map(authority -> new SimpleGrantedAuthority(authority.getName().name()))
-         .collect(Collectors.toList());
+      List<GrantedAuthority> grantedAuthorities = List.of( new SimpleGrantedAuthority(user.getRole().name()));
       return new org.springframework.security.core.userdetails.User(user.getEmail(),
          user.getPassword(),
          grantedAuthorities);

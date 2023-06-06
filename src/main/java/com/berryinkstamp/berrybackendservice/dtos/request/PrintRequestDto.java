@@ -16,6 +16,7 @@ public class PrintRequestDto {
     private String size;
     private String sourceOfItem;
     private Long mockItemId;
-    private BigDecimal estimatedAmount;
+    //todo validate amount is not negative.
+    private BigDecimal estimatedAmount = BigDecimal.ZERO;
     private LocalDate dateOfDelivery;
 }
