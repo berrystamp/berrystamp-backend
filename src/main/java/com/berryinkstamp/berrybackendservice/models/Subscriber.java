@@ -3,8 +3,7 @@ package com.berryinkstamp.berrybackendservice.models;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -12,6 +11,9 @@ import java.io.Serializable;
 @Setter
 @Entity
 @Table(name = "Subscribers")
+@Builder
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class Subscriber extends AbstractAuditingEntity<User> implements Serializable {
 
     @Id
