@@ -22,5 +22,5 @@ public class SubscriberServiceImpl implements SubscriberService {
         subscriberRepository.save(subscriber);
         return subscriber;
     }
-
+   
 }
