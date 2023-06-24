@@ -27,9 +27,6 @@ public class PrintRequest extends AbstractAuditingEntity<PrintRequest> implement
     private BigDecimal designAmount;
     private String mockItemUrl;
     private String mockName;
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn //todo remove this because it is already represented in orderRequest (designerOrPrinterProfile) richard
-    private Profile printerProfile;
     private String sourceOfItem;
     private Long quantity;
     private String colour;

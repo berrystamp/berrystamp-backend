@@ -1,10 +1,7 @@
 package com.berryinkstamp.berrybackendservice.controllers;
 
 import com.berryinkstamp.berrybackendservice.annotations.WrapApiResponse;
-import com.berryinkstamp.berrybackendservice.dtos.request.NewDesignRequest;
-import com.berryinkstamp.berrybackendservice.dtos.request.OrderDto;
-import com.berryinkstamp.berrybackendservice.dtos.request.OrderRequestCreation;
-import com.berryinkstamp.berrybackendservice.dtos.request.PrintRequestDto;
+import com.berryinkstamp.berrybackendservice.dtos.request.*;
 import com.berryinkstamp.berrybackendservice.enums.OrderStatus;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.models.CustomDesign;
@@ -31,8 +28,8 @@ import java.util.Map;
 @RequestMapping("/api/v1/orders")
 @AllArgsConstructor
 public class OrderController {
-    private OrderService orderService;
-    private CustomDesignService customDesignService;
+    private final OrderService orderService;
+    private final CustomDesignService customDesignService;
 
     @Operation(summary = "create a new order for designer or printer")
     @PostMapping()
@@ -77,4 +74,14 @@ public class OrderController {
     public CustomDesign uploadCustomDesign(@Valid @RequestBody NewDesignRequest newDesignRequest, @PathVariable Long orderId){
         return customDesignService.uploadCustomDesign(newDesignRequest, orderId);
     }
+
+    @Operation(summary = "pay for order")
+    @PutMapping("/{orderId}/")
+    @PreAuthorize("hasRole('ROLE_DESIGNER')")
+    public Map<String, String> uploadCustomDesign(@Valid @RequestBody OrderPaymentDto orderPaymentDto){
+        return orderService.payForOrder(orderPaymentDto);
+    }
+
+
+
 }

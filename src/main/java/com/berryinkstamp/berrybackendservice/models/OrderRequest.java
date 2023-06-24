@@ -1,6 +1,7 @@
 package com.berryinkstamp.berrybackendservice.models;
 
 import com.berryinkstamp.berrybackendservice.enums.OrderType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,5 +27,8 @@ public class OrderRequest extends AbstractAuditingEntity<Order> implements Seria
     private OrderType orderType;
     private BigDecimal budgetAmount;
     private LocalDate dateOfDelivery;
+    @JsonIgnore
+    @OneToOne
+    private Profile designerOrPrinterProfile;
 
 }

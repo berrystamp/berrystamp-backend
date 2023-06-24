@@ -27,20 +27,13 @@ public class Order extends AbstractAuditingEntity<Order> implements Serializable
     private BigDecimal pickupAmount;
     private BigDecimal totalAmount;
     private Boolean paid = false;
-    private String transactionId;
+    private String transactionRef;
+    private String paymentUrl;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus = OrderStatus.REVIEW;
 
     //todo move this to order request richard
     //todo create order and test richard,
-    @JsonIgnore
-    @OneToOne
-    private Profile designerOrPrinterProfile;
-
-    //todo remove this it is already in order request
-    @JsonIgnore
-    @OneToOne
-    private Profile customerProfile;
 
     @OneToOne
     private OrderRequest orderRequest;
