@@ -12,7 +12,8 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    Page<Order>findAllByCustomerProfile(Profile customerProfile, Pageable pageable);
     Page<Order>findAllByOrderStatus(OrderStatus orderStatus, Pageable pageable);
-    Optional<Order>findOrderByCustomerProfileAndId(Profile profile, Long orderId);
+    Optional<Order>findOrderByOrderRequest_CustomerProfileAndId(Profile profile, Long orderId);
+    Optional<Order>findOrderByTransactionRef(String ref);
+    Page<Order>findAllByOrderRequest_CustomerProfile(Profile profile,Pageable pageable);
 }

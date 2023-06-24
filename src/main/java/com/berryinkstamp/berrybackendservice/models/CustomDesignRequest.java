@@ -27,7 +27,6 @@ public class CustomDesignRequest extends AbstractAuditingEntity<CustomDesign> im
     private  String mockTypes;
     private  String theme;
     private  String purpose;
-    private  Long designerProfileId; //todo remove this because it is already represented in orderRequest (designerOrPrinterProfile) richard
     private String imageUrlBack;
     private String imageUrlFront;
     private Long designId;

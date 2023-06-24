@@ -22,14 +22,13 @@ import java.util.stream.Collectors;
 @Service
 @AllArgsConstructor
 public class CustomDesignServiceImpl implements CustomDesignService {
-    private TokenProvider  tokenProvider;
-    private DesignRepository designRepository;
-    private ProfileRepository profileRepository;
-    private OrderRequestRepository orderRequestRepository;
-    private CustomDesignRequestRepository customDesignRequestRepository;
-    private MockImageRepository mockImageRepository;
-    private CustomDesignRepository customDesignRepository;
-    private OrderRepository orderRepository;
+    private final TokenProvider  tokenProvider;
+    private final DesignRepository designRepository;
+    private final ProfileRepository profileRepository;
+    private final OrderRequestRepository orderRequestRepository;
+    private final CustomDesignRequestRepository customDesignRequestRepository;
+    private final MockImageRepository mockImageRepository;
+    private final CustomDesignRepository customDesignRepository;
 
 
     @Override
@@ -115,7 +114,6 @@ public class CustomDesignServiceImpl implements CustomDesignService {
                 .map(id -> profileRepository.findById(id).orElseThrow(() -> new NotFoundException("No profile with id found")))
                 .filter(profile -> profile.getProfileType() == ProfileType.DESIGNER)
                 .orElseThrow(() -> new NotFoundException("Profile type customer not found for id"));
-        customDesign.setDesignerProfileId(designerProfile.getId());
         customDesign.setPurpose(customDesignRequest.getPurpose());
         customDesign.setMockTypes(String.join(",", customDesignRequest.getMockTypes()));
         customDesign.setTheme(customDesignRequest.getTheme());
@@ -136,7 +134,6 @@ public class CustomDesignServiceImpl implements CustomDesignService {
         Profile deignerProfile = profileRepository.findById(designerId).orElseThrow(() -> new NotFoundException("No profile with id found"));
         var customDesign = new CustomDesignRequest();
         customDesign.setIsReferenceDesign(true);
-        customDesign.setDesignerProfileId(designerId);
         customDesign.setImageUrlFront(design.getImageUrlFront());
         customDesign.setImageUrlBack(design.getImageUrlBack());
         customDesign.setDesignId(design.getId());
