@@ -22,12 +22,12 @@ public class AdminDesignController {
     private DesignService designService;
 
     @PatchMapping("/{id}/review")
-    public ResponseEntity<Design> acceptDesign(@PathVariable("id") Long designId, @RequestParam boolean approved){
+    public ResponseEntity<Design> adminAcceptOrRejectDesign(@PathVariable("id") Long designId, @RequestParam boolean approved){
         return new ResponseEntity<>(designService.acceptDesign(designId, approved), HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<Page<Design>> fetchDesign(@RequestParam(required = false) DesignStatus status, Pageable pageable){
-      return new ResponseEntity<>(designService.fetchAllDesign(status, pageable),HttpStatus.OK);
+    public ResponseEntity<Page<Design>> adminFetchAllDesign(@RequestParam(required = false) DesignStatus status, Pageable pageable){
+      return new ResponseEntity<>(designService.adminFetchAllDesign(status, pageable),HttpStatus.OK);
     }
 }

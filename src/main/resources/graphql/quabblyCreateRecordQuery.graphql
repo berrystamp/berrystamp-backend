@@ -1,0 +1,11 @@
+
+    mutation {
+        record(boardId: "idOfBoard", dto: createRecordDTO) {
+        data {
+            fieldId
+            value
+            values
+            }
+        id
+        }
+    }

@@ -15,16 +15,20 @@ import java.util.Optional;
 public interface DesignRepository extends JpaRepository<Design, Long> {
     Optional<Design> findDesignByDesignerIdAndNameAndDeletedFalse(Long profileId, String name);
     List<Design> findAllByDesignerAndDeletedFalse(Profile designer, Pageable pageable);
-    Optional<Design> findDesignBySlugAndDeletedFalse(String name);
+    Optional<Design> findDesignBySlugAndDeletedFalseAndApprovedIsTrue(String name);
     Optional<Design> findByIdAndDesignerAndDeletedFalse(Long id, Profile designer);
 
     Optional<Design> findByIdAndDeletedFalse(Long id);
+    Optional<Design> findByIdAndDeletedFalseAndApprovedIsTrue(Long id);
 
-    Page<Design> findByDeleted(boolean deleted, Pageable pageable);
+    Page<Design> findByDeletedAndApprovedIsTrue(boolean deleted, Pageable pageable);
 
     boolean existsByNameAndDesignerAndIdNot(String name, Profile designer, Long id);
 
-    Page<Design> findByStatus(DesignStatus designStatus, Pageable pageable);
+    Page<Design> findByDeletedFalse(Pageable pageable);
+
+    Page<Design> findByDeletedFalseAndStatus(DesignStatus status, Pageable pageable);
+
 
 
 }

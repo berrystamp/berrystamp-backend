@@ -1,7 +1,7 @@
 package com.berryinkstamp.berrybackendservice.controllers;
 
 import com.berryinkstamp.berrybackendservice.dtos.request.Message;
-import com.berryinkstamp.berrybackendservice.services.MessageService;
+import com.berryinkstamp.berrybackendservice.services.email.MessageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;

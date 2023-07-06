@@ -1,8 +1,7 @@
 
-package com.berryinkstamp.berrybackendservice.services.impl;
+package com.berryinkstamp.berrybackendservice.services.email.impl;
 
 import com.berryinkstamp.berrybackendservice.configs.security.jwt.TokenProvider;
-import com.berryinkstamp.berrybackendservice.dtos.request.MarkMessageAsRead;
 import com.berryinkstamp.berrybackendservice.dtos.request.Message;
 import com.berryinkstamp.berrybackendservice.enums.ConversationType;
 import com.berryinkstamp.berrybackendservice.enums.ProfileType;
@@ -16,7 +15,7 @@ import com.berryinkstamp.berrybackendservice.repositories.ChatMessageRepository;
 import com.berryinkstamp.berrybackendservice.repositories.ConversationRepository;
 import com.berryinkstamp.berrybackendservice.repositories.ProfileRepository;
 import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
-import com.berryinkstamp.berrybackendservice.services.MessageService;
+import com.berryinkstamp.berrybackendservice.services.email.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;

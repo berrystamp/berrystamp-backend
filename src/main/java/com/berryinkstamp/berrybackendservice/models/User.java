@@ -61,6 +61,9 @@ public class User extends AbstractAuditingEntity<User> implements Serializable {
 
    private LocalDateTime lastPasswordResetDate;
 
+   @JsonIgnore
+   private String spreadsheetId;
+
 
    @JsonIgnore
    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

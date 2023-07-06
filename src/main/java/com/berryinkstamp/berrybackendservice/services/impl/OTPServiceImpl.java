@@ -4,7 +4,7 @@ import com.berryinkstamp.berrybackendservice.models.Admin;
 import com.berryinkstamp.berrybackendservice.models.OTPMapper;
 import com.berryinkstamp.berrybackendservice.models.User;
 import com.berryinkstamp.berrybackendservice.repositories.OTPMapperRepository;
-import com.berryinkstamp.berrybackendservice.services.EmailService;
+import com.berryinkstamp.berrybackendservice.services.email.EmailService;
 import com.berryinkstamp.berrybackendservice.services.OTPService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,15 +54,15 @@ public class OTPServiceImpl implements OTPService {
     }
 
     @Override
-    public void sendForgetPasswordOTP(String email, String name) {
+    public void sendForgetPasswordOTP(User user) {
         String otp = RandomStringUtils.randomNumeric(6);
-        log.info("forget password otp {} for user {}", otp, email);
+        log.info("forget password otp {} for user {}", otp, user.getEmail());
         try {
-            emailService.sendForgetPasswordOTP(otp, email, name);
+            emailService.sendForgetPasswordOTP(otp, user);
         }catch (Exception e){
             e.printStackTrace();
         }
-        saveOTP(email, otp);
+        saveOTP(user.getEmail(), otp);
     }
 
 
@@ -71,6 +71,19 @@ public class OTPServiceImpl implements OTPService {
     public boolean verifyOTP(String email, String code) {
         Optional<OTPMapper> otpMapper = otpMapperRepository.findFirstByEmail(email);
         return otpMapper.filter(mapper -> Objects.equals(mapper.getOtp(), code)).isPresent();
+    }
+
+    @Override
+    public void resendOTP(User user) {
+        String otp = RandomStringUtils.randomNumeric(6);
+        log.info("resend otp {} for user {}", otp, user.getEmail());
+        try {
+            emailService.resendOTP(otp, user);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        saveOTP(user.getEmail(), otp);
+
     }
 
     private void saveOTP(String email, String otp) {

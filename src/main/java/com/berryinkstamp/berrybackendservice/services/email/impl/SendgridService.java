@@ -1,8 +1,8 @@
-package com.berryinkstamp.berrybackendservice.services.impl;
+package com.berryinkstamp.berrybackendservice.services.email.impl;
 
 import com.berryinkstamp.berrybackendservice.dtos.request.EmailRequest;
 import com.berryinkstamp.berrybackendservice.enums.MailProvider;
-import com.berryinkstamp.berrybackendservice.services.MailProviderService;
+import com.berryinkstamp.berrybackendservice.services.email.MailProviderService;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.SendGrid;

@@ -1,0 +1,5 @@
+
+    mutation {
+        deleteRecord(boardId: "$boardId", recordId: "$recordId")
+
+    }

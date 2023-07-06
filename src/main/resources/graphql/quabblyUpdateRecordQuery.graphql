@@ -1,0 +1,10 @@
+mutation {
+    updateRecord (boardId: "$boardId", recordId: "$recordId", dto: $dto) {
+        data {
+            fieldId
+            value
+            values
+        }
+        id
+    }
+}

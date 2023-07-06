@@ -1,0 +1,10 @@
+query  {
+    boardRecords(boardId: "$boardId") {
+        id
+        data {
+            fieldId
+            value
+            values
+        }
+    }
+}

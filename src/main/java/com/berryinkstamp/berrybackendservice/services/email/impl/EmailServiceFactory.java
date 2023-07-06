@@ -1,7 +1,7 @@
-package com.berryinkstamp.berrybackendservice.services.impl;
+package com.berryinkstamp.berrybackendservice.services.email.impl;
 
 import com.berryinkstamp.berrybackendservice.enums.MailProvider;
-import com.berryinkstamp.berrybackendservice.services.MailProviderService;
+import com.berryinkstamp.berrybackendservice.services.email.MailProviderService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 

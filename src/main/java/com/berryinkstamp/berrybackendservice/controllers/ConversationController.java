@@ -4,7 +4,7 @@ import com.berryinkstamp.berrybackendservice.enums.ProfileType;
 import com.berryinkstamp.berrybackendservice.models.ChatMessage;
 import com.berryinkstamp.berrybackendservice.models.Conversation;
 import com.berryinkstamp.berrybackendservice.services.ConversationService;
-import com.berryinkstamp.berrybackendservice.services.MessageService;
+import com.berryinkstamp.berrybackendservice.services.email.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;

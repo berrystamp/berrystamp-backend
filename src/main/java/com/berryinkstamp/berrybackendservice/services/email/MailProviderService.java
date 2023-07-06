@@ -1,4 +1,4 @@
-package com.berryinkstamp.berrybackendservice.services;
+package com.berryinkstamp.berrybackendservice.services.email;
 
 import com.berryinkstamp.berrybackendservice.dtos.request.EmailRequest;
 import com.berryinkstamp.berrybackendservice.enums.MailProvider;

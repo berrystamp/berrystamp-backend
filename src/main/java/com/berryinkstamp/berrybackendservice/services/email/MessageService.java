@@ -1,4 +1,4 @@
-package com.berryinkstamp.berrybackendservice.services;
+package com.berryinkstamp.berrybackendservice.services.email;
 
 import com.berryinkstamp.berrybackendservice.dtos.request.MarkMessageAsRead;
 import com.berryinkstamp.berrybackendservice.dtos.request.Message;

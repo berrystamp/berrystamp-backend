@@ -1,0 +1,10 @@
+query {
+    RecordById (recordId: "$recordId") {
+        id
+        data {
+            fieldId
+            value
+            values
+        }
+    }
+}

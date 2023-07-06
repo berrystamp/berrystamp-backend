@@ -204,7 +204,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public Object resetPassword(BaseRequest baseRequest) {
         Admin user = adminRepository.findFirstByEmail(baseRequest.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
-        otpService.sendForgetPasswordOTP(user.getEmail(), user.getName());
+        otpService.sendAdminResetOTP(user);
         return Map.of();
     }
 

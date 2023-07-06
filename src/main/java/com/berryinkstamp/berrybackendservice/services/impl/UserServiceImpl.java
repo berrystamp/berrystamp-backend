@@ -36,7 +36,7 @@ import com.berryinkstamp.berrybackendservice.repositories.ProfileRepository;
 import com.berryinkstamp.berrybackendservice.repositories.RatingRepository;
 import com.berryinkstamp.berrybackendservice.repositories.RoleRepository;
 import com.berryinkstamp.berrybackendservice.repositories.UserRepository;
-import com.berryinkstamp.berrybackendservice.services.EmailService;
+import com.berryinkstamp.berrybackendservice.services.email.EmailService;
 import com.berryinkstamp.berrybackendservice.services.OTPService;
 import com.berryinkstamp.berrybackendservice.services.UserService;
 import lombok.RequiredArgsConstructor;
@@ -103,7 +103,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Object resendCode(BaseRequest baseRequest) {
         User user = userRepository.findFirstByEmail(baseRequest.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
-        otpService.sendRegistrationOTP(user);
+        otpService.resendOTP(user);
         return null;
     }
 
@@ -131,7 +131,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Object resetPassword(BaseRequest baseRequest) {
         User user = userRepository.findFirstByEmail(baseRequest.getEmail()).orElseThrow(() -> new NotFoundException("User not found"));
-        otpService.sendForgetPasswordOTP(user.getEmail(), user.getName());
+        otpService.sendForgetPasswordOTP(user);
         return null;
     }
 
